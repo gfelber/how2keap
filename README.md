@@ -20,31 +20,41 @@ modify ./rootfs/init to improve debugging
 
 ## Techniques
 
-| File                          |      | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
-| ----------------------------- | ---- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
-| [dirty_cred.c](/dirty_cred.c) |      | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
+| File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
+| ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
+| [dirty\_cred.c](/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
 
 ## run examples
 just replace pwn.c with the example you want to run (i.e. dirty\_cred.c)
 
 ## helper scripts:
 
-+ scripts/decompress.sh 
-  run this to extract the rootfs.cpio.gz into ./rootfs
-  
-+ scripts/compress.sh 
-  recompress ./rootfs into rootfs.cpio.gz (i.e. after changes were made)
-
-+ scripts/build.sh
-  build the exploit (pwn.c), and add it to the root of the filesystem /pwn,
-  if changes were made (autorun in start-qemu.sh and run-gdb.sh)
-  
 + scripts/start-qemu.sh
   start qemu vm
 
 + scripts/run-gdb.sh
   run qemu and attach gdb to it (expects to be run in tmux session),
   uses scripts/gdbinit
+
++ scripts/decompress.sh 
+  run this to extract the rootfs.cpio.gz into ./rootfs
+ 
++ scripts/compress.sh 
+  recompress ./rootfs into rootfs.cpio.gz (i.e. after changes were made)
+
++ scripts/build.sh
+  build the exploit (pwn.c), and add it to the root of the filesystem /pwn,
+  if changes were made (autorun in start-qemu.sh and run-gdb.sh)
+
+## buildroot
+download [buildroot](https://buildroot.org/download.html) and extract
+apply buildroot keap.patch using patch
+
+```bash
+patch -p1 -i buildroot/keap.patch -d ./PATH/TO/BUIDLROOT
+```
+now you can make changes using `m̀ake menuconfig` (e.g. changing kernel version) and recompile keap using `make` (might take a while)
+the final files (rootfs.cpio.gz and bzImage) are located inside the buildroot dir inside `./output/images`
 
 ## helpful links
 + bootlin: https://elixir.bootlin.com/linux/v6.6.22/source
