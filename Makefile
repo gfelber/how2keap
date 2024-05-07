@@ -22,4 +22,4 @@ keap.o: ./libs/keap.c
 	$(CC) $(CFLAGS) -c libs/keap.c
 	
 clean:
-	rm -f *.o $(NAME) ./rootfs/$(NAME)
+	rm -f *.o $(NAME) 
