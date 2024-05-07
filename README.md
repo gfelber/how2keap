@@ -18,6 +18,12 @@ flag is in /dev/sda
 
 modify ./rootfs/init to improve debugging
 
+## Techniques
+
+| File                          |      | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
+| ----------------------------- | ---- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
+| [dirty_cred.c](/dirty_cred.c) |      | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
+
 ## run examples
 just replace pwn.c with the example you want to run (i.e. dirty\_cred.c)
 
@@ -42,3 +48,4 @@ just replace pwn.c with the example you want to run (i.e. dirty\_cred.c)
 
 ## helpful links
 + bootlin: https://elixir.bootlin.com/linux/v6.6.22/source
+
