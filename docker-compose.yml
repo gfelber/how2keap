@@ -1,0 +1,10 @@
+version: "3"
+services:
+  keap:
+    build: .
+    ports:
+      - "28338:1337"
+    expose:
+      - "28338"
+    environment:
+      FLAG: keap{REDACTED}
