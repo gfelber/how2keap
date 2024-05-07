@@ -1,5 +1,5 @@
 pwn.c
 rootfs.cpio.gz
 rootfs
-share/rootfs.cpio.gz
 share/bzImage
+.gdb_history
