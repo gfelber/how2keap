@@ -1,4 +1,6 @@
+pwn
 pwn.c
+*.o
 rootfs.cpio.gz
 rootfs
 share/bzImage

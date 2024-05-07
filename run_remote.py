@@ -56,7 +56,9 @@ def checkpoint():
 context.newline = b'\r\n'
 
 linfo('compile pwn binary')
-os.system(f'gcc -static -Os ./pwn.c -o {BINARY}')
+if os.system('make'):
+  lerror('failed to compile')
+os.system(f'mv ./pwn {BINARY}')
 os.system(f'xz {BINARY}')
 
 linfo('read pwn file')
