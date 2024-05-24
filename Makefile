@@ -9,6 +9,9 @@ debug: CFLAGS += -DDEBUG
 
 all: $(NAME)
 
+rootfs: all 
+	mv $(NAME) ./rootfs/$(NAME)
+
 $(NAME): $(NAME).o util.o keap.o 
 	$(CC) $(CFLAGS) $(NAME).o util.o keap.o -o ./$(NAME)
 

@@ -12,8 +12,7 @@ MD5=$(md5sum ../rootfs/pwn)
 cd ..
 # gcc -static -pthread -no-pie  -Os ../pwn.c -o ../rootfs/pwn
 make clean
-make 
-mv pwn rootfs/pwn
+make rootfs 
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
   echo compile failed

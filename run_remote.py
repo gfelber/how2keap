@@ -92,7 +92,7 @@ sl(b'chmod +x /tmp/pwn')
 checkpoint()
 
 linfo('execute pwn binary')
-sl(b'/tmp/pwn')
+sl(b'while ! /tmp/pwn; do test; done')
 rl()
 
 t.interactive()

