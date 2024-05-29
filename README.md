@@ -22,17 +22,25 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 
 ## Techniques
 
+### Privilige Escalation
+
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
 | [dirty\_cred.c](/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
+
+### Gadgets
+| File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
+| ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
+| [cross\_cache.c](/cross_cache.c) | showcasing a cross cache attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
+| [per\_cpu\_slab.c](/per_cpu_slab.c) | showcasing a how slabs are managed and reallocated on a per cpu basis| latest  | 
 
 ## run examples
 just replace pwn.c with the example you want to run (i.e. dirty\_cred.c)
 
 ## helper scripts:
 
-+ scripts/start-qemu.sh [-g] [-b]  
- start qemu vm, -g with gdb (nokalsr), -b run ./build.sh first
++ scripts/start-qemu.sh [-g] [-b] [-c]   
+start qemu vm, -g with gdb (nokalsr), -b run ./build.sh first, -c run ./compress.sh
 
 + scripts/decompress.sh   
   run this to extract the rootfs.cpio.gz into ./rootfs

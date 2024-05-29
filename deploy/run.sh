@@ -7,8 +7,8 @@ printenv FLAG > $FLAG_FILE
 exec qemu-system-x86_64 \
   -kernel /home/keap/bzImage  \
   -cpu kvm64,+smap,+smep \
-  -m 1G \
-  -smp 2 \
+  -m 512M \
+  -smp 3 \
   -initrd /home/keap/rootfs.cpio.gz  \
   -hda $FLAG_FILE \
   -append "rootwait root=/dev/vda console=tty1 console=ttyS0"   \

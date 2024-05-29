@@ -1,6 +1,7 @@
 pwn
 pwn.c
 *.o
+*.swp
 rootfs.cpio.gz
 rootfs
 share/bzImage

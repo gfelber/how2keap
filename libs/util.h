@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <stdint.h>
 #include <sys/mman.h>
 #include <sys/resource.h>
 
@@ -26,6 +27,21 @@
 	__res; \
 })
 
+
+#define RDTSC() ({ \
+    uint32_t lo, hi; \
+    __asm__ __volatile__ ( \
+      "xorl %%eax, %%eax\n" \
+      "lfence\n" \
+      "rdtsc\n" \
+      : "=a" (lo), "=d" (hi) \
+      : \
+      : "%ebx", "%ecx"); \
+    (uint64_t)hi << 32 | lo; \
+})
+
+
+void burn_cycles(unsigned long long cycles);
 void pin_cpu(pid_t pid, int cpu);
 int rlimit_increase(int rlimit);
 int ipow(int base, unsigned int power);

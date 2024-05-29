@@ -1,5 +1,15 @@
 #include "util.h"
 
+
+void burn_cycles(unsigned long long cycles)
+{
+	unsigned long long start, ts;
+	start = RDTSC();
+	do {
+		ts = RDTSC();
+	} while ((ts - start) < cycles);
+}
+
 void pin_cpu(pid_t pid, int cpu)
 {
 	cpu_set_t cpuset;
