@@ -32,7 +32,8 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
 | [cross\_cache.c](/cross_cache.c) | showcasing a cross cache attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
-| [per\_cpu\_slabs.c](/per_cpu_slabs.c) | showcasing a how slabs are managed and reallocated on a per cpu basis| latest  | 
+| [per\_cpu\_slabs.c](/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  | 
+| [mmaped\_files.c.c](/mmaped_files.cc) |   using mmaped files to create race windows with `copy_from_user` and `copy_to_user`  | latest |
 
 ## run examples
 just replace pwn.c with the example you want to run (i.e. dirty\_cred.c)

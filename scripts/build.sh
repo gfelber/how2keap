@@ -19,10 +19,6 @@ if [ $RESULT -ne 0 ]; then
   exit 1
 fi
 
-if [ $? -ne 0 ]; then
-  exit # gcc failed
-fi
-
 cd $SCRIPTPATH
 if [ "$MD5" != "$(md5sum ../rootfs/pwn)" ]; then
   ./compress.sh
