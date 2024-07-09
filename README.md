@@ -26,17 +26,17 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
-| [dirty\_cred.c](/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
+| [dirty\_cred.c](/linux6.6.22/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
 
 ### Gadgets
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
-| [cross\_cache.c](/cross_cache.c) | showcasing a cross cache attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
-| [per\_cpu\_slabs.c](/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  | 
-| [mmaped\_files.c](/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` and `copy_to_user`  | latest |
+| [cross\_cache.c](/linux6.6.22/cross_cache.c) | showcasing a cross cache attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
+| [per\_cpu\_slabs.c](/linux6.6.22/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  | 
+| [mmaped\_files.c](/linux6.6.22/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` and `copy_to_user`  | latest |
 
 ## run examples
-just replace pwn.c with the example you want to run (e.g. dirty\_cred.c)
+just replace pwn.c with the example you want to run (e.g. ./linux6.6.22/dirty\_cred.c)
 
 ## helper scripts:
 
