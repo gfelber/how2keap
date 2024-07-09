@@ -36,12 +36,12 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 | [mmaped\_files.c](/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` and `copy_to_user`  | latest |
 
 ## run examples
-just replace pwn.c with the example you want to run (i.e. dirty\_cred.c)
+just replace pwn.c with the example you want to run (e.g. dirty\_cred.c)
 
 ## helper scripts:
 
-+ scripts/start-qemu.sh [-g] [-b] [-c]   
-start qemu vm, -g with gdb (nokalsr), -b run ./build.sh first, -c run ./compress.sh
++ scripts/start-qemu.sh [-g] [-b] [-c] [-k] 
+start qemu vm, -g with gdb (nokalsr), -k nokalsr, -b run ./build.sh first, -c run ./compress.sh
 
 + scripts/decompress.sh   
   run this to extract the rootfs.cpio.gz into ./rootfs

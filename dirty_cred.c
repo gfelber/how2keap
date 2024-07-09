@@ -106,9 +106,8 @@ int main(void)
   // After: 1 fd 0 refcount (Because new file)
   // Effect: FD in mmap (which is writeable) can be replaced with RDONLY file
 
-  int passwd_fds[PASSWD_SPRAY_FDS];
   for (int i = 0; i < PASSWD_SPRAY_FDS; i++) {
-      passwd_fds[i] = open("/etc/passwd", O_RDONLY);
+      open("/etc/passwd", O_RDONLY);
   }
   // After: 2 fd 1 refcount (but writeable due to mmap)
   #ifdef DEBUG
