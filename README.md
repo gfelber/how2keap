@@ -41,13 +41,13 @@ just replace pwn.c with the example you want to run (e.g. ./linux6.6.22/dirty\_c
 
 ## helper scripts:
 
-+ scripts/start-qemu.sh [OPTIONS]
-  start qemu vm
-  -b run ./build.sh
-  -d run ./build.sh with -DDEBUG 
-  -g with gdb (nokalsr)
-  -k nokalsr
-  -c run ./compress.sh
++ scripts/start-qemu.sh [OPTIONS]  
+start qemu vm  
+-b run ./build.sh  
+-d run ./build.sh with -DDEBUG  
+-g with gdb (nokalsr)  
+-k nokalsr  
+-c run ./compress.sh
 
 + scripts/decompress.sh   
   run this to extract the rootfs.cpio.gz into ./rootfs
