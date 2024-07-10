@@ -6,3 +6,4 @@ rootfs.cpio.gz
 rootfs
 share/bzImage
 .gdb_history
+out

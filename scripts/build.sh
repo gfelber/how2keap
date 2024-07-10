@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 SCRIPTPATH="$( cd -- "$(dirname $(dirname "$0"))" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
@@ -10,7 +10,14 @@ fi
 MD5=$(md5sum ./rootfs/pwn)
 
 make clean
-make rootfs 
+
+if [ $DEBUG -eq 1 ]; then
+  make rootfs CFLAGS=-DDEBUG
+else
+  make rootfs 
+fi
+
+
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
   echo compile failed

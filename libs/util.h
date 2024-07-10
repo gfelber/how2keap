@@ -14,14 +14,14 @@
 
 /* Assert that x is true. */
 #define CHK(x) do { if (!(x)) { \
-	fprintf(stderr, "%s\n", "CHK(" #x ")"); \
+	fprintf(stderr, "[-] %s\n", "CHK(" #x ")"); \
 	exit(1); } } while (0)
 
 /* Assert that a syscall x has succeeded. */
 #define SYSCHK(x) ({ \
 	typeof(x) __res = (x); \
 	if (__res == (typeof(x))-1) { \
-		fprintf(stderr, "%s: %s\n", "SYSCHK(" #x ")", strerror(errno)); \
+		fprintf(stderr, "[-] %s: %s\n", "SYSCHK(" #x ")", strerror(errno)); \
 		exit(1); \
 	} \
 	__res; \

@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
   void* ptr = keap_malloc(strlen(msg), GFP_KERNEL_ACCOUNT);
   printf("ptr: %p\n", ptr);
   keap_write(ptr, msg, strlen(msg));
-  keap_read(buf, ptr, strlen(msg));
+  keap_read(ptr, buf, strlen(msg));
   keap_free(ptr);
 
   puts(buf);

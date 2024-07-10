@@ -10,8 +10,8 @@ if [ ! -f ./share/bzImage ] || [ ! -f ./share/rootfs.cpio.gz ] ; then
 fi
 
 mkdir -p ./rootfs
+cp ./share/rootfs.cpio.gz ./rootfs
 cd ./rootfs
-cp ./share/rootfs.cpio.gz .
 gunzip ./rootfs.cpio.gz
 fakeroot cpio -idm < ./rootfs.cpio
 rm rootfs.cpio

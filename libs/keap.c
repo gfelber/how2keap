@@ -18,7 +18,7 @@ void* keap_malloc(size_t size, int flags) {
   return param.heap_ptr;
 }
 
-long keap_read(void *buf, void *ptr, size_t size) {
+long keap_read(void *ptr, void *buf, size_t size) {
   struct keap_transfer transfer = {
     .heap_ptr  = ptr,
     .buf = buf,

@@ -21,24 +21,24 @@ void pin_cpu(pid_t pid, int cpu)
 int rlimit_increase(int rlimit)
 {
   struct rlimit r;
-  if (getrlimit(rlimit, &r)) {
-    puts("rlimit_increase:getrlimit");
-    exit(EXIT_FAILURE);
-  }
+  SYSCHK(getrlimit(rlimit, &r));
 
   if (r.rlim_max <= r.rlim_cur)
   {
+#ifdef DEBUG
       printf("[+] rlimit %d remains at %.lld", rlimit, r.rlim_cur);
+#endif
       return 0;
   }
+
   r.rlim_cur = r.rlim_max;
   int res;
-  if (res = setrlimit(rlimit, &r)) {
-    puts("rlimit_increase:setrlimit");
-    exit(EXIT_FAILURE);
-  }
-  else
-    printf("[+] rlimit %d increased to %lld\n", rlimit, r.rlim_max);
+  res = SYSCHK(setrlimit(rlimit, &r));
+
+#ifdef DEBUG
+  printf("[+] rlimit %d increased to %lld\n", rlimit, r.rlim_max);
+#endif
+
   return res;
 }
 

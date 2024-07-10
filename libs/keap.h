@@ -27,7 +27,7 @@ struct keap_transfer {
 extern int keap_fd;
 void init();
 void* keap_malloc(size_t size, int flags);
-long keap_read(void *buf, void *ptr, size_t size);
+long keap_read(void *ptr, void *buf, size_t size);
 long keap_write(void* ptr, void *buf, size_t size);
 void keap_free(void *ptr);
 

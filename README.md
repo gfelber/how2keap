@@ -27,6 +27,7 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
 | [dirty\_cred.c](/linux6.6.22/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
+| [file\_corrupt.c](/linux6.6.22/file_corrupt.c) | use a UAF to corrupt /etc/passwd to get privileged | latest        | [Faulty Kernel](https://github.com/DownUnderCTF/Challenges_2024_Public/tree/main/pwn/faulty-kernel) |
 
 ### Gadgets
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
@@ -40,8 +41,13 @@ just replace pwn.c with the example you want to run (e.g. ./linux6.6.22/dirty\_c
 
 ## helper scripts:
 
-+ scripts/start-qemu.sh [-g] [-b] [-c] [-k] 
-start qemu vm, -g with gdb (nokalsr), -k nokalsr, -b run ./build.sh first, -c run ./compress.sh
++ scripts/start-qemu.sh [OPTIONS]
+  start qemu vm
+  -b run ./build.sh
+  -d run ./build.sh with -DDEBUG 
+  -g with gdb (nokalsr)
+  -k nokalsr
+  -c run ./compress.sh
 
 + scripts/decompress.sh   
   run this to extract the rootfs.cpio.gz into ./rootfs

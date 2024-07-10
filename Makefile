@@ -2,27 +2,33 @@ AUTHOR = "\x06\xfe\x1b\xe2"
 NAME = pwn
 
 CC = cc
-CFLAGS = -static -Os -DGNU_SOURCE
+_CFLAGS := $(CFLAGS) -static -Os -DGNU_SOURCE
 CLIBS = -pthread
-CFLAGS += $(CLIBS)
-debug: CFLAGS += -DDEBUG
+_CFLAGS += $(CLIBS)
 
-all: $(NAME)
+debug: _CFLAGS += -DDEBUG -g
+debug: all
 
-rootfs: all 
-	mv $(NAME) ./rootfs/$(NAME)
+all: out out/$(NAME)
 
-$(NAME): $(NAME).o util.o keap.o 
-	$(CC) $(CFLAGS) $(NAME).o util.o keap.o -o ./$(NAME)
+rootfs: all
+	cp out/$(NAME) rootfs/$(NAME)
 
-$(NAME).o: $(NAME).c
-	$(CC) $(CFLAGS) -c $(NAME).c
+out/$(NAME): out/$(NAME).o out/util.o out/keap.o 
+	$(CC) $(_CFLAGS) out/$(NAME).o out/util.o out/keap.o -o out/$(NAME)
 
-util.o: ./libs/util.c
-	$(CC) $(CFLAGS) -c libs/util.c
+out/$(NAME).o: $(NAME).c
+	$(CC) $(_CFLAGS) -c $(NAME).c -o out/$(NAME).o
+
+out/util.o: ./libs/util.c
+	$(CC) $(_CFLAGS) -c libs/util.c -o out/util.o
 	
-keap.o: ./libs/keap.c
-	$(CC) $(CFLAGS) -c libs/keap.c
+out/keap.o: ./libs/keap.c
+	$(CC) $(_CFLAGS) -c libs/keap.c -o out/keap.o 
+
+out:
+	mkdir -p out
 	
 clean:
-	rm -f *.o $(NAME) 
+	rm out/*.o out/$(NAME) 
+	rmdir out

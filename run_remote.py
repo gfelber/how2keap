@@ -41,9 +41,10 @@ cl = lambda t=None: gt(t).close()
 
 IP = 'localhost'
 PORT = 28338
-BINARY='/tmp/pwn'
+BINARY='./out/pwn'
+PREFIX='~ $'
 
-def send_cmd(cmd, prefix='~ $'):
+def send_cmd(cmd, prefix=PREFIX):
   ru(prefix)
   sl(cmd)
   ru(cmd)
@@ -58,7 +59,6 @@ context.newline = b'\r\n'
 linfo('compile pwn binary')
 if os.system('make'):
   lerror('failed to compile')
-os.system(f'mv ./pwn {BINARY}')
 os.system(f'xz {BINARY}')
 
 linfo('read pwn file')

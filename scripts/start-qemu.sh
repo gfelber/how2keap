@@ -4,31 +4,35 @@ SCRIPTPATH="$( cd -- "$(dirname $(dirname "$0"))" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 
 HELP=$(cat << EOM
-$0 [-b] [-g] [-k] [-c]
--b BUILD and compress rootfs if changed
+$0 [OPTIONS]
+-b build and compress rootfs if changed
+-d build with -DDEBUG
 -g run with GDB (also disables kaslr)
 -k disable kaslr
 -c force compress rootfs
+-h print this message
 EOM
 )
 GDB=0
 BUILD=0
 COMPRESS=0
 NOKASLR=0
-while getopts "gbhck" opt
+DEBUG=0
+while getopts "bdgkch" opt
 do
     case $opt in
-    (g) do_all=0 ; GDB=1 ;;
     (b) do_all=0 ; BUILD=1 ;;
-    (c) do_all=0 ; COMPRESS=1 ;;
+    (d) do_all=0 ; DEBUG=1; BUILD=1 ;;
+    (g) do_all=0 ; GDB=1; NOKASLR=1 ;;
     (k) do_all=0 ; NOKASLR=1 ;;
+    (c) do_all=0 ; COMPRESS=1 ;;
     (h) do_all=0 ; echo "$HELP"; exit 0 ;;
     (*) printf "Illegal option '-%s'\n" "$opt" && exit 1 ;;
     esac
 done
 
 if [ $BUILD -eq 1 ]; then
-  ./scripts/build.sh || exit 1;
+  DEBUG=$DEBUG ./scripts/build.sh || exit 1;
 fi
 
 if [ $COMPRESS -eq 1 ]; then
@@ -40,8 +44,11 @@ QARGS=""
 KARGS="rootwait root=/dev/vda console=tty1 console=ttyS0"
 
 if [ $GDB -eq 1 ]; then
-  tmux split -v "gdb ./share/bzImage -x gdbinit"
+  tmux split -v "gdb ./share/bzImage -x ./scripts/gdbinit"
   QARGS="-s"
+fi
+
+if [ $NOKASLR -eq 1 ]; then
   KARGS="$KARGS nokaslr"
 fi
 
