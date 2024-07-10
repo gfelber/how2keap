@@ -27,7 +27,7 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
 | [dirty\_cred.c](/linux6.6.22/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
-| [file\_corrupt.c](/linux6.6.22/file_corrupt.c) | use a UAF to corrupt /etc/passwd to get privileged | latest        | [Faulty Kernel](https://github.com/DownUnderCTF/Challenges_2024_Public/tree/main/pwn/faulty-kernel) |
+| [file\_corrupt.c](/linux6.6.22/file_corrupt.c) | use a UAF to corrupt /etc/passwd flags and get privileged | latest        | [Faulty Kernel](https://github.com/DownUnderCTF/Challenges_2024_Public/tree/main/pwn/faulty-kernel) |
 
 ### Gadgets
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
