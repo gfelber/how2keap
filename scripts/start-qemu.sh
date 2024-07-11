@@ -23,7 +23,7 @@ do
     case $opt in
     (b) do_all=0 ; BUILD=1 ;;
     (d) do_all=0 ; DEBUG=1; BUILD=1 ;;
-    (g) do_all=0 ; GDB=1; NOKASLR=1 ;;
+    (g) do_all=0 ; GDB=1;;
     (k) do_all=0 ; NOKASLR=1 ;;
     (c) do_all=0 ; COMPRESS=1 ;;
     (h) do_all=0 ; echo "$HELP"; exit 0 ;;

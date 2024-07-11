@@ -27,7 +27,8 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
 | [dirty\_cred.c](/linux6.6.22/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged | latest        | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
-| [dirty\_pagetable.c](/linux6.6.22/dirty_pagetable.c) | [Dirty Pagetable](https://yanglingxi1993.github.io/dirty_pagetable/dirty_pagetable.html) abuse pagetables to get unprotected AAR/AAW in kernel space | latest        | [keasy](https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#Dirty-Pagetable) |
+| [dirty\_pagetable.c](/linux6.6.22/dirty_pagetable.c) | [Dirty Pagetable](https://yanglingxi1993.github.io/dirty_pagetable/dirty_pagetable.html) abuse pagetables to get unprotected AAR/AAW in kernel space (kernel RCE) | latest        | [keasy](https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#Dirty-Pagetable) |
+| [dirty\_pagetable\_mp.c](/linux6.6.22/dirty_pagetable_mp.c) | [Dirty Pagetable](https://yanglingxi1993.github.io/dirty_pagetable/dirty_pagetable.html) abuse pagetables to get unprotected AAR/AAW in kernel space (modprobe) | latest        | [keasy](https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#Dirty-Pagetable) |
 | [file\_corrupt.c](/linux6.6.22/file_corrupt.c) | use a UAF to corrupt /etc/passwd flags and get privileged | latest        | [Faulty Kernel](https://github.com/DownUnderCTF/Challenges_2024_Public/tree/main/pwn/faulty-kernel) |
 
 ### Gadgets
@@ -46,7 +47,7 @@ just replace pwn.c with the example you want to run (e.g. ./linux6.6.22/dirty\_c
 start qemu vm  
 -b run ./build.sh  
 -d run ./build.sh with -DDEBUG  
--g with gdb (nokalsr)  
+-g with gdb (kalsr still enabled)  
 -k nokalsr  
 -c run ./compress.sh
 
