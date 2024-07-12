@@ -7,7 +7,7 @@ HELP=$(cat << EOM
 $0 [OPTIONS]
 -b build and compress rootfs if changed
 -d build with -DDEBUG
--g run with GDB (also disables kaslr)
+-g run with GDB (kaslr still enabled)
 -k disable kaslr
 -c force compress rootfs
 -h print this message
