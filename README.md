@@ -43,34 +43,40 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 ## run examples
 just replace pwn.c with the example you want to run (e.g. ./linux6.6.22/dirty\_cred.c)
 
+then run `./scripts/start-qemu.sh -b` to build and execute `/pwn` inside the vm
+
 ## helper scripts:
 
-+ scripts/start-qemu.sh [OPTIONS]
-start qemu vm
--b build and compress rootfs if changed
--d build with -DDEBUG
--g run with GDB (kaslr still enabled)
--k disable kaslr
--c force compress rootfs
++ scripts/start-qemu.sh [OPTIONS]\
+  -b build and compress rootfs if changed\
+  -d build with -DDEBUG\
+  -g run with GDB (kaslr still enabled)\
+  -k disable kaslr\
+  -c force compress rootfs
 
-+ scripts/decompress.sh
++ scripts/decompress.sh\
   run this to extract the rootfs.cpio.gz into ./rootfs
 
-+ scripts/compress.sh
++ scripts/compress.sh\
   recompress ./rootfs into rootfs.cpio.gz (i.e. after changes were made)
 
-+ scripts/build.sh
++ scripts/build.sh\
   build the exploit (pwn.c), and add it to the root of the filesystem /pwn
 
-## buildroot
-download [buildroot](https://buildroot.org/download.html) and extract
-apply buildroot keap.patch using patch
 
+only using scripts/start-qemu.sh should be sufficient in most cases
+
+## buildroot
+compile and modify kernel using buildroot
+
+1. download [buildroot](https://buildroot.org/download.html) and extract
+2. apply buildroot keap.patch using patch:
 ```bash
 patch -p1 -i buildroot/keap.patch -d ./PATH/TO/BUIDLROOT
 ```
-now you can make changes using `make menuconfig` (e.g. changing kernel version) and recompile keap using `make` (might take a while)
-the final files (rootfs.cpio.gz and bzImage) are located inside the buildroot dir inside `./output/images`
+3. make changes using `make menuconfig` (e.g. changing kernel version)
+4. compile keap and kernel using `make` (might take a while)
+5. the final files (rootfs.cpio.gz and bzImage) are located inside the buildroot dir inside `./output/images`
 
 ## helpful links
 + bootlin: https://elixir.bootlin.com/linux/v6.6.22/source
