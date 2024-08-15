@@ -1,5 +1,9 @@
 #include "util.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
+int stage = 0;
 
 void burn_cycles(unsigned long long cycles)
 {
@@ -25,9 +29,7 @@ int rlimit_increase(int rlimit)
 
   if (r.rlim_max <= r.rlim_cur)
   {
-#ifdef DEBUG
-      printf("[+] rlimit %d remains at %.lld", rlimit, r.rlim_cur);
-#endif
+      linfo("rlimit %d remains at %.lld", rlimit, r.rlim_cur);
       return 0;
   }
 
@@ -35,9 +37,7 @@ int rlimit_increase(int rlimit)
   int res;
   res = SYSCHK(setrlimit(rlimit, &r));
 
-#ifdef DEBUG
-  printf("[+] rlimit %d increased to %lld\n", rlimit, r.rlim_max);
-#endif
+  ldebug("rlimit %d increased to %lld", rlimit, r.rlim_max);
 
   return res;
 }
@@ -71,11 +71,15 @@ char* cyclic(int length) {
 }
 
 void print_hex(char* buf, int len){
+    linfo("print hex:");
     for (int i = 0; i < len; ++i) {
-        if (i % 8 == 0) puts("");
+        if (i % 8 == 0) printf("    ");
         printf("%02hhx", buf[i]);
+        if (i % 8 == 7) putchar('\n');
     }
-    puts("");
+
+    if((len & 0x7) != 0)
+        putchar('\n');
+
+    putchar('\n');
 }
-
-

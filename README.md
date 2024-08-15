@@ -1,5 +1,7 @@
 # how2keap
 
+A WIP cheat sheet for various linux kernel heap exploitation techniques (and privilige escalations).
+
 ```
 ####################################################
 #                                                  #
@@ -18,7 +20,7 @@ flag is in /dev/sda
 
 modify ./rootfs/init to improve debugging
 
-exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; do test; done`)
+exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; do true; done`)
 
 ## Techniques
 
@@ -35,7 +37,7 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
 | [cross\_cache.c](/linux6.6.22/cross_cache.c) | showcasing a cross cacheq attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
-| [per\_cpu\_slabs.c](/linux6.6.22/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  | 
+| [per\_cpu\_slabs.c](/linux6.6.22/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  |
 | [mmaped\_files.c](/linux6.6.22/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` or `copy_to_user`  | latest |
 
 ## run examples
@@ -43,21 +45,21 @@ just replace pwn.c with the example you want to run (e.g. ./linux6.6.22/dirty\_c
 
 ## helper scripts:
 
-+ scripts/start-qemu.sh [OPTIONS]  
-start qemu vm  
--b build and compress rootfs if changed  
--d build with -DDEBUG  
--g run with GDB (kaslr still enabled)  
--k disable kaslr  
++ scripts/start-qemu.sh [OPTIONS]
+start qemu vm
+-b build and compress rootfs if changed
+-d build with -DDEBUG
+-g run with GDB (kaslr still enabled)
+-k disable kaslr
 -c force compress rootfs
 
-+ scripts/decompress.sh   
++ scripts/decompress.sh
   run this to extract the rootfs.cpio.gz into ./rootfs
- 
-+ scripts/compress.sh   
+
++ scripts/compress.sh
   recompress ./rootfs into rootfs.cpio.gz (i.e. after changes were made)
 
-+ scripts/build.sh  
++ scripts/build.sh
   build the exploit (pwn.c), and add it to the root of the filesystem /pwn
 
 ## buildroot
@@ -72,4 +74,3 @@ the final files (rootfs.cpio.gz and bzImage) are located inside the buildroot di
 
 ## helpful links
 + bootlin: https://elixir.bootlin.com/linux/v6.6.22/source
-

