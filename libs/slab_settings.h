@@ -239,10 +239,10 @@ static inline void set_current_slab_info(size_t size)
     if (cur == 0)
         lerror("slab with size %ld not found", size);
     ldebug("slab with size %ld found", size);
-    ldebug(" - cur->size           %ld", cur->size);
-    ldebug(" - cur->allocs         %ld", cur->allocs);
-    ldebug(" - cur->slab_per_chunk %ld", cur->slab_per_chunk);
-    ldebug(" - cur->objs_per_slab   %ld", cur->objs_per_slab);
-    ldebug(" - cur->reclaimed_page_table     %ld", cur->reclaimed_page_table);
-    ldebug(" - cur->yield          %ld", cur->yield);
+    ldebug(" - cur->size                    %ld", cur->size);
+    ldebug(" - cur->allocs                  %ld", cur->allocs);
+    ldebug(" - cur->slab_per_chunk          %ld", cur->slab_per_chunk);
+    ldebug(" - cur->objs_per_slab           %ld", cur->objs_per_slab);
+    ldebug(" - cur->reclaimed_page_table    %ld", cur->reclaimed_page_table);
+    ldebug(" - cur->yield                   %ld", cur->yield);
 }

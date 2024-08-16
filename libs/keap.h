@@ -29,6 +29,6 @@ void init();
 void* keap_malloc(size_t size, int flags);
 long keap_read(void *ptr, void *buf, size_t size);
 long keap_write(void* ptr, void *buf, size_t size);
-void keap_free(void *ptr);
+int keap_free(void *ptr);
 
 #endif

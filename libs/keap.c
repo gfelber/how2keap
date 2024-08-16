@@ -23,7 +23,7 @@ long keap_read(void *ptr, void *buf, size_t size) {
     .heap_ptr  = ptr,
     .buf = buf,
     .size = size
-  }; 
+  };
   return SYSCHK(ioctl(keap_fd, KEAP_IOCTL_READ, &transfer));
 }
 
@@ -32,11 +32,10 @@ long keap_write(void* ptr, void *buf, size_t size) {
     .heap_ptr  = ptr,
     .buf = buf,
     .size = size
-  }; 
+  };
   return SYSCHK(ioctl(keap_fd, KEAP_IOCTL_WRITE, &transfer));
 }
 
-void keap_free(void *ptr) {
-  ioctl(keap_fd, KEAP_IOCTL_FREE, ptr);
+int keap_free(void *ptr) {
+  return ioctl(keap_fd, KEAP_IOCTL_FREE, ptr);
 }
-

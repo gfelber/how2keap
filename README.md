@@ -37,6 +37,7 @@ exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; 
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | ----------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------- |
 | [cross\_cache.c](/linux6.6.22/cross_cache.c) | showcasing a cross cacheq attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
+| [slubstick.c](/linux6.6.22/slubstick.c) | [SLUBStick](https://github.com/IAIK/SLUBStick) more reliable way to trigger cross-cache  | latest        |  |
 | [per\_cpu\_slabs.c](/linux6.6.22/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  |
 | [mmaped\_files.c](/linux6.6.22/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` or `copy_to_user`  | latest |
 

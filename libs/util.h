@@ -27,7 +27,7 @@
 
 
 /* MACRO to enforce inline */
-#define RDTSC() ({ \
+#define rdtsc() ({ \
     uint32_t lo, hi; \
     __asm__ __volatile__ ( \
       "xorl %%eax, %%eax\n" \
@@ -38,7 +38,6 @@
       : "%ebx", "%ecx"); \
     (uint64_t)hi << 32 | lo; \
 })
-
 
 void burn_cycles(unsigned long long cycles);
 void pin_cpu(pid_t pid, int cpu);

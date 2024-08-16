@@ -8,9 +8,9 @@ int stage = 0;
 void burn_cycles(unsigned long long cycles)
 {
 	unsigned long long start, ts;
-	start = RDTSC();
+	start = rdtsc();
 	do {
-		ts = RDTSC();
+		ts = rdtsc();
 	} while ((ts - start) < cycles);
 }
 
