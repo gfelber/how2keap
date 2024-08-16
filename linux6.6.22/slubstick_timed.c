@@ -1,26 +1,4 @@
 #include "libs/pwn.h"
-#include "libs/gfp_types.h"
-#include "libs/slab_settings.h"
-#include <sched.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <sys/wait.h>
-#include <sys/syscall.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/prctl.h>
-#include <string.h>
-#include <sys/time.h>
-#include <sys/resource.h>
 
 /*
  * inspired by https://github.com/IAIK/SLUBStick

