@@ -60,7 +60,9 @@ void print_hex(char* buf, int len);
 
 #define lwarn(format, ...) fprintf (stderr, LWARN format "\n", ##__VA_ARGS__)
 
-#define lerror(format, ...) fprintf (stderr, LERROR format "\n", ##__VA_ARGS__)
+#define lerror(format, ...) do { \
+    fprintf (stderr, LERROR format "\n", ##__VA_ARGS__); \
+    exit(EXIT_FAILURE); } while (0)
 
 extern int stage;
 #define lstage(format, ...) printf (LSTAGE format "\n", ++stage, ##__VA_ARGS__)

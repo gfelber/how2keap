@@ -7,3 +7,4 @@ rootfs
 share/bzImage
 .gdb_history
 out
+shellcode

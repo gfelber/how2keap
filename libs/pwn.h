@@ -1,4 +1,5 @@
 #include "gfp_types.h"
+#include "slab_settings.h"
 #include "keap.h"
 #include "util.h"
 
@@ -7,4 +8,3 @@
 
 
 #endif
-
