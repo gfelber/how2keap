@@ -20,7 +20,7 @@
 #define SYSCHK(x) ({ \
 	typeof(x) __res = (x); \
 	if (__res == (typeof(x))-1) { \
-		lerror("%s: %s\n", "SYSCHK(" #x ")", strerror(errno)); \
+		lerror("%s: %s", "SYSCHK(" #x ")", strerror(errno)); \
 	} \
 	__res; \
 })
