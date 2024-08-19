@@ -1,6 +1,5 @@
-#include <unistd.h>
 #include "libs/pwn.h"
-
+#include <unistd.h>
 
 /*******************************
  * EXPLOIT                     *
@@ -8,7 +7,7 @@
 
 #define CHUNK_SIZE 0x100
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   void *freed_ptr, *diff_ptr, *same_ptr;
 
   setvbuf(stdout, NULL, _IONBF, 0);

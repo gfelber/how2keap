@@ -17,7 +17,7 @@ void timed_alloc_objs(size_t size, size_t *times) {
     t0 = rdtsc();
     keap_malloc(cur->size, GFP_KERNEL);
     t1 = rdtsc();
-    times[i] = t1-t0;
+    times[i] = t1 - t0;
   }
 }
 
@@ -61,5 +61,4 @@ int main(int argc, char *argv[]) {
   lstage("print times");
   print_times(times, cur->allocs);
   free(times);
-
 }

