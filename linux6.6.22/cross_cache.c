@@ -15,8 +15,7 @@
 #define TARGET_SIZE 0x100
 #define TARGET_CHUNKS 0x800
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   char *buf = cyclic(TARGET_SIZE);
   size_t generic_cache_size;
   void *victim_ptr;
@@ -44,7 +43,7 @@ int main(int argc, char *argv[])
     // clear victim chunks
     keap_write(victim_chunks[i], leak, cur->size);
     if (i == (VICTIM_CHUNKS(cur) / 8)*7)
-        victim_ptr = victim_chunks[i];
+      victim_ptr = victim_chunks[i];
   }
 
   // free slab in order to get cross cache
@@ -69,8 +68,6 @@ int main(int argc, char *argv[])
   }
 
   free(buf);
-
-  lstage("END");
 
   return strcmp("", leak) == 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

@@ -28,15 +28,15 @@
 
 /* MACRO to enforce inline */
 #define rdtsc() ({ \
-    uint32_t lo, hi; \
-    __asm__ __volatile__ ( \
-      "xorl %%eax, %%eax\n" \
-      "lfence\n" \
-      "rdtsc\n" \
-      : "=a" (lo), "=d" (hi) \
-      : \
-      : "%ebx", "%ecx"); \
-    (uint64_t)hi << 32 | lo; \
+  uint32_t lo, hi; \
+  __asm__ __volatile__ ( \
+    "xorl %%eax, %%eax\n" \
+    "lfence\n" \
+    "rdtsc\n" \
+    : "=a" (lo), "=d" (hi) \
+    : \
+    : "%ebx", "%ecx"); \
+  (uint64_t)hi << 32 | lo; \
 })
 
 void burn_cycles(unsigned long long cycles);
@@ -60,8 +60,8 @@ void print_hex(char* buf, int len);
 #define lwarn(format, ...) fprintf (stderr, LWARN format "\n", ##__VA_ARGS__)
 
 #define lerror(format, ...) do { \
-    fprintf (stderr, LERROR format "\n", ##__VA_ARGS__); \
-    exit(EXIT_FAILURE); } while (0)
+  fprintf (stderr, LERROR format "\n", ##__VA_ARGS__); \
+  exit(EXIT_FAILURE); } while (0)
 
 extern int stage;
 #define lstage(format, ...) printf (LSTAGE format "\n", ++stage, ##__VA_ARGS__)

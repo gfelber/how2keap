@@ -94,7 +94,5 @@ int main(int argc, char* argv[]) {
   lstage("Finished! Reading Flag");
   SYSCHK(system("su -c 'cat /dev/sda'"));
 
-  lstage("END");
-
   return 0;
 }

@@ -16,12 +16,12 @@
 
 
 /*
- * ALLOCS_SIZE:          Fetch form /sys/kernel/slab/kmalloc-SIZE/slab_size
+ * ALLOCS_SIZE:      Fetch form /sys/kernel/slab/kmalloc-SIZE/slab_size
  * SLABS_PER_CHUNK_SIZE: ?
  * SLAB_RECLAIMED_AS_PAGE_TABLE_SIZE: ?
  * OBJS_PER_SLABS_SIZE:  Fetch from /sys/kernel/slab/kmalloc-SIZE/objs_per_slab
- * YIELD_SIZE:           ?
- * CPU_PARTIAL_SIZE:     Fetch this from /sys/kernel/slab/kmalloc-SIZE/cpu_partial
+ * YIELD_SIZE:       ?
+ * CPU_PARTIAL_SIZE:   Fetch this from /sys/kernel/slab/kmalloc-SIZE/cpu_partial
  */
 
 // SLAB_SIZE == 4096
@@ -110,139 +110,138 @@
 #define CPU_PARTIAL_8 120
 
 struct slab_info {
-    size_t size;
-    size_t allocs;
-    size_t pre_allocs;
-    size_t slab_per_chunk;
-    size_t objs_per_slab;
-    size_t reclaimed_page_table;
-    size_t yield;
-    size_t cpu_partial;
+  size_t size;
+  size_t allocs;
+  size_t pre_allocs;
+  size_t slab_per_chunk;
+  size_t objs_per_slab;
+  size_t reclaimed_page_table;
+  size_t yield;
+  size_t cpu_partial;
 };
 static struct slab_info slab_infos[] = {
-    {
-        .size = 4096,
-        .allocs = ALLOCS_4k,
-        .slab_per_chunk = SLAB_PER_CHUNK_4k,
-        .objs_per_slab = OBJS_PER_SLAB_4k,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_4k,
-        .yield = YIELD_4k,
-        .cpu_partial = CPU_PARTIAL_4k,
-    },
-    {
-        .size = 2048,
-        .allocs = ALLOCS_2k,
-        .slab_per_chunk = SLAB_PER_CHUNK_2k,
-        .objs_per_slab = OBJS_PER_SLAB_2k,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_2k,
-        .yield = YIELD_2k,
-        .cpu_partial = CPU_PARTIAL_2k,
-    },
-    {
-        .size = 1024,
-        .allocs = ALLOCS_1k,
-        .slab_per_chunk = SLAB_PER_CHUNK_1k,
-        .objs_per_slab = OBJS_PER_SLAB_1k,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_1k,
-        .yield = YIELD_1k,
-        .cpu_partial = CPU_PARTIAL_1k,
-    },
-    {
-        .size = 512,
-        .allocs = ALLOCS_512,
-        .slab_per_chunk = SLAB_PER_CHUNK_512,
-        .objs_per_slab = OBJS_PER_SLAB_512,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_512,
-        .yield = YIELD_512,
-        .cpu_partial = CPU_PARTIAL_512,
-    },
-    {
-        .size = 256,
-        .allocs = ALLOCS_256,
-        .slab_per_chunk = SLAB_PER_CHUNK_256,
-        .objs_per_slab = OBJS_PER_SLAB_256,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_256,
-        .yield = YIELD_256,
-        .cpu_partial = CPU_PARTIAL_256,
-    },
-    {
-        .size = 192,
-        .allocs = ALLOCS_192,
-        .slab_per_chunk = SLAB_PER_CHUNK_192,
-        .objs_per_slab = OBJS_PER_SLAB_192,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_192,
-        .yield = YIELD_192,
-        .cpu_partial = CPU_PARTIAL_192,
-    },
-    {
-        .size = 128,
-        .allocs = ALLOCS_128,
-        .slab_per_chunk = SLAB_PER_CHUNK_128,
-        .objs_per_slab = OBJS_PER_SLAB_128,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_128,
-        .yield = YIELD_128,
-        .cpu_partial = CPU_PARTIAL_128,
-    },
-    {
-        .size = 96,
-        .allocs = ALLOCS_96,
-        .slab_per_chunk = SLAB_PER_CHUNK_96,
-        .objs_per_slab = OBJS_PER_SLAB_96,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_96,
-        .yield = YIELD_96,
-        .cpu_partial = CPU_PARTIAL_96,
-    },
-    {
-        .size = 64,
-        .allocs = ALLOCS_64,
-        .slab_per_chunk = SLAB_PER_CHUNK_64,
-        .objs_per_slab = OBJS_PER_SLAB_64,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_64,
-        .yield = YIELD_64,
-        .cpu_partial = CPU_PARTIAL_64,
-    },
-    {
-        .size = 32,
-        .allocs = ALLOCS_32,
-        .slab_per_chunk = SLAB_PER_CHUNK_32,
-        .objs_per_slab = OBJS_PER_SLAB_32,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_32,
-        .yield = YIELD_32,
-        .cpu_partial = CPU_PARTIAL_32,
-    },
-    {
-        .size = 16,
-        .allocs = ALLOCS_16,
-        .slab_per_chunk = SLAB_PER_CHUNK_16,
-        .objs_per_slab = OBJS_PER_SLAB_16,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_16,
-        .yield = YIELD_16,
-        .cpu_partial = CPU_PARTIAL_16,
-    },
-    {
-        .size = 8,
-        .allocs = ALLOCS_8,
-        .slab_per_chunk = SLAB_PER_CHUNK_8,
-        .objs_per_slab = OBJS_PER_SLAB_8,
-        .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_8,
-        .yield = YIELD_8,
-        .cpu_partial = CPU_PARTIAL_8,
-    },
+  {
+    .size = 4096,
+    .allocs = ALLOCS_4k,
+    .slab_per_chunk = SLAB_PER_CHUNK_4k,
+    .objs_per_slab = OBJS_PER_SLAB_4k,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_4k,
+    .yield = YIELD_4k,
+    .cpu_partial = CPU_PARTIAL_4k,
+  },
+  {
+    .size = 2048,
+    .allocs = ALLOCS_2k,
+    .slab_per_chunk = SLAB_PER_CHUNK_2k,
+    .objs_per_slab = OBJS_PER_SLAB_2k,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_2k,
+    .yield = YIELD_2k,
+    .cpu_partial = CPU_PARTIAL_2k,
+  },
+  {
+    .size = 1024,
+    .allocs = ALLOCS_1k,
+    .slab_per_chunk = SLAB_PER_CHUNK_1k,
+    .objs_per_slab = OBJS_PER_SLAB_1k,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_1k,
+    .yield = YIELD_1k,
+    .cpu_partial = CPU_PARTIAL_1k,
+  },
+  {
+    .size = 512,
+    .allocs = ALLOCS_512,
+    .slab_per_chunk = SLAB_PER_CHUNK_512,
+    .objs_per_slab = OBJS_PER_SLAB_512,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_512,
+    .yield = YIELD_512,
+    .cpu_partial = CPU_PARTIAL_512,
+  },
+  {
+    .size = 256,
+    .allocs = ALLOCS_256,
+    .slab_per_chunk = SLAB_PER_CHUNK_256,
+    .objs_per_slab = OBJS_PER_SLAB_256,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_256,
+    .yield = YIELD_256,
+    .cpu_partial = CPU_PARTIAL_256,
+  },
+  {
+    .size = 192,
+    .allocs = ALLOCS_192,
+    .slab_per_chunk = SLAB_PER_CHUNK_192,
+    .objs_per_slab = OBJS_PER_SLAB_192,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_192,
+    .yield = YIELD_192,
+    .cpu_partial = CPU_PARTIAL_192,
+  },
+  {
+    .size = 128,
+    .allocs = ALLOCS_128,
+    .slab_per_chunk = SLAB_PER_CHUNK_128,
+    .objs_per_slab = OBJS_PER_SLAB_128,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_128,
+    .yield = YIELD_128,
+    .cpu_partial = CPU_PARTIAL_128,
+  },
+  {
+    .size = 96,
+    .allocs = ALLOCS_96,
+    .slab_per_chunk = SLAB_PER_CHUNK_96,
+    .objs_per_slab = OBJS_PER_SLAB_96,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_96,
+    .yield = YIELD_96,
+    .cpu_partial = CPU_PARTIAL_96,
+  },
+  {
+    .size = 64,
+    .allocs = ALLOCS_64,
+    .slab_per_chunk = SLAB_PER_CHUNK_64,
+    .objs_per_slab = OBJS_PER_SLAB_64,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_64,
+    .yield = YIELD_64,
+    .cpu_partial = CPU_PARTIAL_64,
+  },
+  {
+    .size = 32,
+    .allocs = ALLOCS_32,
+    .slab_per_chunk = SLAB_PER_CHUNK_32,
+    .objs_per_slab = OBJS_PER_SLAB_32,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_32,
+    .yield = YIELD_32,
+    .cpu_partial = CPU_PARTIAL_32,
+  },
+  {
+    .size = 16,
+    .allocs = ALLOCS_16,
+    .slab_per_chunk = SLAB_PER_CHUNK_16,
+    .objs_per_slab = OBJS_PER_SLAB_16,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_16,
+    .yield = YIELD_16,
+    .cpu_partial = CPU_PARTIAL_16,
+  },
+  {
+    .size = 8,
+    .allocs = ALLOCS_8,
+    .slab_per_chunk = SLAB_PER_CHUNK_8,
+    .objs_per_slab = OBJS_PER_SLAB_8,
+    .reclaimed_page_table = SLAB_RECLAIMED_AS_PAGE_TABLE_8,
+    .yield = YIELD_8,
+    .cpu_partial = CPU_PARTIAL_8,
+  },
 };
 struct slab_info *cur = 0;
-static inline void set_current_slab_info(size_t size)
-{
-    int ret;
-    for (size_t i = 0; i < sizeof(slab_infos)/sizeof(struct slab_info); ++i)
-        if (slab_infos[i].size == size)
-            cur = &slab_infos[i];
-    if (cur == 0)
-        lerror("slab with size %ld not found", size);
-    ldebug("slab with size %ld found", size);
-    ldebug(" - cur->size                    %ld", cur->size);
-    ldebug(" - cur->allocs                  %ld", cur->allocs);
-    ldebug(" - cur->slab_per_chunk          %ld", cur->slab_per_chunk);
-    ldebug(" - cur->objs_per_slab           %ld", cur->objs_per_slab);
-    ldebug(" - cur->reclaimed_page_table    %ld", cur->reclaimed_page_table);
-    ldebug(" - cur->yield                   %ld", cur->yield);
+static inline void set_current_slab_info(size_t size) {
+  int ret;
+  for (size_t i = 0; i < sizeof(slab_infos)/sizeof(struct slab_info); ++i)
+    if (slab_infos[i].size == size)
+      cur = &slab_infos[i];
+  if (cur == 0)
+    lerror("slab with size %ld not found", size);
+  ldebug("slab with size %ld found", size);
+  ldebug(" - cur->size                  %ld", cur->size);
+  ldebug(" - cur->allocs                %ld", cur->allocs);
+  ldebug(" - cur->slab_per_chunk        %ld", cur->slab_per_chunk);
+  ldebug(" - cur->objs_per_slab         %ld", cur->objs_per_slab);
+  ldebug(" - cur->reclaimed_page_table  %ld", cur->reclaimed_page_table);
+  ldebug(" - cur->yield                 %ld", cur->yield);
 }

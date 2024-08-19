@@ -9,8 +9,7 @@
  * inspired by https://chovid99.github.io/posts/hitcon-ctf-2023/
  */
 
-int main(void)
-{
+int main(void) {
 
   int tmp_a;
   int freed_fd = -1;
@@ -99,7 +98,7 @@ int main(void)
   // After: 2 fd 1 refcount (Because new file)
 
   for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-      close(spray_fds_2[i]);
+    close(spray_fds_2[i]);
   }
   // After: 1 fd 0 refcount (Because new file)
   // Effect: FD in mmap (which is writeable) can be replaced with RDONLY file

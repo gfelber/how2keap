@@ -3,7 +3,7 @@
 int keap_fd = -1;
 
 void init() {
-    keap_fd = SYSCHK(open("/dev/keap", O_RDWR));
+  keap_fd = SYSCHK(open("/dev/keap", O_RDWR));
 }
 
 

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #define _GNU_SOURCE
 
 #include <pthread.h>
@@ -14,6 +15,12 @@
 #define SLOW_CPU 1
 #define FAST_CPU 2
 
+enum RACE{
+  RACE_ONGOING = 0,
+  RACE_WON,
+  RACE_LOST
+}
+
 int race_done = 0;
 
 void *fast(void *buf) {
@@ -22,7 +29,7 @@ void *fast(void *buf) {
   linfo("starting fast thread");
   pin_cpu(0, FAST_CPU);
   ptr = keap_malloc(BUF_SIZE, GFP_KERNEL_ACCOUNT);
-  race_done = 2;
+  race_done = RACE_LOST;
 
   keap_write(ptr, buf, BUF_SIZE);
   linfo("fast thread done");
@@ -38,7 +45,7 @@ void *slow(void *buf) {
   // slow down execute, increase race window
 
   ptr = keap_malloc(BUF_SIZE, GFP_KERNEL_ACCOUNT);
-  race_done = 1;
+  race_done = RACE_WON;
 
   // stall copy_from_user using mmaped file
   keap_write(ptr, buf, BUF_SIZE);
@@ -61,7 +68,7 @@ int main(int argc, char* argv[]) {
   pin_cpu(0, 0);
   init();
 
-  lstage("START");
+  lstage("create slower structs");
 
   // create target file
   fd = SYSCHK(open(SLOW_FILE, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
@@ -72,6 +79,8 @@ int main(int argc, char* argv[]) {
   fd = SYSCHK(open(SLOW_FILE, O_RDWR));
   map = SYSCHK(mmap(NULL, 0x1000, PROT_READ, MAP_SHARED, fd, 0));
 
+  lstage("start race");
+
   // create a busy thread to slow down execution
   pthread_create(&slow_t, NULL, slow, map);
   pthread_create(&fast_t, NULL, fast, (void*) buf);
@@ -79,5 +88,9 @@ int main(int argc, char* argv[]) {
   pthread_join(slow_t, NULL);
   pthread_join(fast_t, NULL);
 
-  return race_done == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
+  if (race_done == RACE_LOST)
+    lerror("failed racer");
+
+  linfo("won race!!");
+
 }

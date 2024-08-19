@@ -28,7 +28,5 @@ int main(int argc, char* argv[]) {
 
   linfo("MSG: %s", buf);
 
-  lstage("END");
-
   return 0;
 }

