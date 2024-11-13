@@ -1,10 +1,10 @@
 pwn
-pwn.c
 *.o
 *.swp
 rootfs.cpio.gz
 rootfs
-share/bzImage
+bzImage
 .gdb_history
 out
 shellcode
+

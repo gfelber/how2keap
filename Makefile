@@ -2,14 +2,14 @@ AUTHOR = "\x06\xfe\x1b\xe2"
 NAME = pwn
 
 CC = cc
-_CFLAGS := $(CFLAGS) -static -Os -DGNU_SOURCE
+_CFLAGS := $(CFLAGS) -static -Os -s -DGNU_SOURCE
 CLIBS = -pthread
 _CFLAGS += $(CLIBS)
 
+all: out out/$(NAME)
+
 debug: _CFLAGS += -DDEBUG -g
 debug: all
-
-all: out out/$(NAME)
 
 rootfs: all
 	cp out/$(NAME) rootfs/$(NAME)

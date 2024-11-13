@@ -13,8 +13,6 @@
 #define VAL_RDWR 0x000f800f00000000
 #define VAL_MASK 0x000f000f00000000
 
-char clear[FILE_SIZE] = {0};
-
 /*
  * O_RDONLY          | O_RDWR
  * 0000000000000000  | 0000000000000000
@@ -56,6 +54,7 @@ int main(int argc, char *argv[]) {
   bool found;
   int fd;
   uint64_t leak[FILE_SIZE / sizeof(uint64_t)] = {0};
+  char clear[FILE_SIZE] = {0};
 
   lstage("INIT");
 

