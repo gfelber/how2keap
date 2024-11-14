@@ -31,6 +31,12 @@ do
     esac
 done
 
+
+if [ ! -d ./rootfs ]; then
+  cp ./share/rootfs.cpio.gz ./
+  ./scripts/decompress.sh
+fi
+
 if [ $BUILD -eq 1 ]; then
   DEBUG=$DEBUG ./scripts/build.sh || exit 1;
 fi
@@ -52,14 +58,20 @@ if [ $NOKASLR -eq 1 ]; then
   KARGS="$KARGS nokaslr"
 fi
 
+FLAG_FILE=$(mktemp)
+printenv FLAG > $FLAG_FILE
+
 exec qemu-system-x86_64 \
   $QARGS \
   -kernel ./share/bzImage  \
   -cpu qemu64,+smap,+smep \
   -m 512M \
   -smp 3 \
-  -drive file=./share/flag.txt,format=raw \
+  -drive file=$FLAG_FILE,format=raw \
+  -drive file=./out/pwn,format=raw \
   -initrd ./rootfs.cpio.gz  \
   -append "$KARGS" \
   -monitor /dev/null \
   -nographic
+
+rm $FLAG_FILE
