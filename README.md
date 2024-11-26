@@ -22,6 +22,12 @@ modify ./rootfs/init to improve debugging
 
 exploit is located inside the vm in /pwn (recommend running with `while ! /pwn; do true; done`)
 
+## Disclaimer
+
+This source code is provided for **educational and ethical purposes** only. The author(s) strictly prohibit any use of this code for unlawful, malicious, or unauthorized activities. By using this code, you agree to comply with all applicable laws and take full responsibility for any misuse.
+
+The author(s) disclaim all liability for damages or legal consequences resulting from improper or illegal use of this code. Use responsibly and only in accordance with ethical guidelines and legal requirements.
+
 ## Techniques
 
 ### Privilige Escalation
