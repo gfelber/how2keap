@@ -38,6 +38,7 @@ The author(s) disclaim all liability for damages or legal consequences resulting
 | [dirty\_pagetable.c](/linux6.6.22/dirty_pagetable.c) | [Dirty Pagetable](https://yanglingxi1993.github.io/dirty_pagetable/dirty_pagetable.html) abuse pagetables to get unprotected AAR/AAW in kernel space (kernel RCE) | latest        | X| [keasy](https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#Dirty-Pagetable) |
 | [dirty\_pagetable\_mp.c](/linux6.6.22/dirty_pagetable_mp.c) | [Dirty Pagetable](https://yanglingxi1993.github.io/dirty_pagetable/dirty_pagetable.html) abuse pagetables to get unprotected AAR/AAW in kernel space (modprobe) | latest        | X | [Faulty Kernel](https://github.com/DownUnderCTF/Challenges_2024_Public/tree/main/pwn/faulty-kernel) |
 | [flag\_corrupt.c](/linux6.6.22/flag_corrupt.c) | use a UAF to corrupt /etc/passwd flags and get privileged | latest        |   | [Faulty Kernel](https://github.com/DownUnderCTF/Challenges_2024_Public/tree/main/pwn/faulty-kernel) |
+| [busy\_hijack.c](/linux6.6.22/busy_hijack.c) | corrutp file struct to bypass COW and inject code into running | latest        | ~ | [Baby VMA](https://github.com/ECSC2024/ECSC2024-CTF-Jeopardy/tree/main/pwn05) |
 
 ### Gadgets
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |

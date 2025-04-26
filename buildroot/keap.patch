@@ -1,6 +1,6 @@
 diff --git a/.config b/.config
 new file mode 100644
-index 00000000..24954310
+index 00000000..47d988fa
 --- /dev/null
 +++ b/.config
 @@ -0,0 +1,3853 @@
@@ -466,7 +466,7 @@ index 00000000..24954310
 +# BR2_LINUX_KERNEL_USE_ARCH_DEFAULT_CONFIG is not set
 +BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
 +BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="board/qemu/x86_64/linux.config"
-+BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES=""
++BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="keap_frag_config"
 +BR2_LINUX_KERNEL_CUSTOM_LOGO_PATH=""
 +BR2_LINUX_KERNEL_BZIMAGE=y
 +# BR2_LINUX_KERNEL_VMLINUX is not set
@@ -2507,35 +2507,35 @@ index 00000000..24954310
 +#
 +
 +#
-+# Please note:                                           
++# Please note:
 +#
 +
 +#
-+# - Buildroot does *not* generate binary packages,       
++# - Buildroot does *not* generate binary packages,
 +#
 +
 +#
-+# - Buildroot does *not* install any package database.   
++# - Buildroot does *not* install any package database.
 +#
 +
 +#
-+# *                                                      
++# *
 +#
 +
 +#
-+# It is up to you to provide those by yourself if you    
++# It is up to you to provide those by yourself if you
 +#
 +
 +#
-+# want to use any of those package managers.             
++# want to use any of those package managers.
 +#
 +
 +#
-+# *                                                      
++# *
 +#
 +
 +#
-+# See the manual:                                        
++# See the manual:
 +#
 +
 +#
@@ -3899,7 +3899,7 @@ index 00000000..6f1024e7
 +      if (copy_from_user(&param, (void __user *)arg, sizeof(param)))
 +        return -EFAULT;
 +      printk("keap: allocate 0x%lx with flags 0x%x\n", param.size, param.flags);
-+      param.heap_ptr = kmalloc(param.size, param.flags);
++      param.heap_ptr = kvmalloc(param.size, param.flags);
 +      return copy_to_user((void __user *)arg, &param, sizeof(param));
 +
 +    case KEAP_IOCTL_READ:
@@ -3916,7 +3916,7 @@ index 00000000..6f1024e7
 +
 +    case KEAP_IOCTL_FREE:
 +      printk("keap: free %p\n", (void*)arg);
-+      kfree((void*) arg);
++      kvfree((void*) arg);
 +      return 0;
 +  }
 +
@@ -3989,6 +3989,17 @@ index 00000000..9fdceba3
 +#define KEAP_IOCTL_FREE   _IOW('K', 3, void *)
 +
 +#endif
+diff --git a/keap_frag_config b/keap_frag_config
+new file mode 100644
+index 00000000..f405caba
+--- /dev/null
++++ b/keap_frag_config
+@@ -0,0 +1,5 @@
++CONFIG_USER_NS=y
++CONFIG_BPF_JIT=y
++CONFIG_BPF_JIT_ALWAYS_ON=y
++CONFIG_BPF_JIT_DEFAULT_ON=y
++
 diff --git a/package/Config.in b/package/Config.in
 index 74e63419..bb684459 100644
 --- a/package/Config.in
@@ -4131,9 +4142,6 @@ index 00000000..232cf1bc
 +
 +
 +$(eval $(generic-package))
-diff --git a/system/skeleton/chroot/.gitkeep b/system/skeleton/chroot/.gitkeep
-new file mode 100644
-index 00000000..e69de29b
 diff --git a/system/skeleton/etc/issue b/system/skeleton/etc/issue
 new file mode 100644
 index 00000000..0332cd0e

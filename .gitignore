@@ -7,4 +7,5 @@ bzImage
 .gdb_history
 out
 shellcode
-
+readflag
+share

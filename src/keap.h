@@ -12,7 +12,7 @@ struct keap_malloc_param {
 
 struct keap_transfer {
   void* heap_ptr;
-  void* buf;
+  void __user *  buf;
   size_t size;
 };
 

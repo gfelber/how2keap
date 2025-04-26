@@ -31,10 +31,14 @@ do
     esac
 done
 
+if [ ! -d ./share/bzImage.unpack ]; then
+  ./scripts/extract-image.sh ./share/bzImage > ./share/bzImage.unpack
+fi
 
 if [ ! -d ./rootfs ]; then
   cp ./share/rootfs.cpio.gz ./
   ./scripts/decompress.sh
+  ./scripts/compress.sh || exit 1;
 fi
 
 if [ $BUILD -eq 1 ]; then
@@ -50,7 +54,7 @@ QARGS=""
 KARGS="rootwait root=/dev/vda console=tty1 console=ttyS0"
 
 if [ $GDB -eq 1 ]; then
-  tmux split -v "gdb ./share/bzImage -x ./scripts/gdbinit"
+  tmux split -v "gdb ./share/bzImage.unpack -x ./scripts/gdbinit"
   QARGS="-s"
 fi
 
@@ -58,8 +62,12 @@ if [ $NOKASLR -eq 1 ]; then
   KARGS="$KARGS nokaslr"
 fi
 
+if test -z "$FLAG"; then
+  FLAG="NOT_THE_FLAG"
+fi
+
 FLAG_FILE=$(mktemp)
-printenv FLAG > $FLAG_FILE
+echo "$FLAG" > $FLAG_FILE
 
 exec qemu-system-x86_64 \
   $QARGS \

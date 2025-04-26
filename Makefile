@@ -2,7 +2,7 @@ AUTHOR = "\x06\xfe\x1b\xe2"
 NAME = pwn
 
 CC = cc
-_CFLAGS := $(CFLAGS) -static -Os -s -DGNU_SOURCE
+_CFLAGS := $(CFLAGS) -static -Os -s -DGNU_SOURCE -masm=intel
 CLIBS = -pthread
 _CFLAGS += $(CLIBS)
 
