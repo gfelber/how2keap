@@ -1,9 +1,9 @@
-#include <linux/cdev.h>
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
-#include <linux/miscdevice.h>
 #include <linux/module.h>
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
@@ -18,7 +18,7 @@ static long keap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
     if (copy_from_user(&param, (void __user *)arg, sizeof(param)))
       return -EFAULT;
     printk("keap: allocate 0x%lx with flags 0x%x\n", param.size, param.flags);
-    param.heap_ptr = kmalloc(param.size, param.flags);
+    param.heap_ptr = kvmalloc(param.size, param.flags);
     return copy_to_user((void __user *)arg, &param, sizeof(param));
 
   case KEAP_IOCTL_READ:
@@ -44,25 +44,19 @@ static long keap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
   return -EINVAL;
 }
 
-static struct file_operations keap_fops = {
-    .owner = THIS_MODULE,
-    .unlocked_ioctl = keap_ioctl,
-};
-
-static struct miscdevice keap_device = {
-    .minor = MISC_DYNAMIC_MINOR,
-    .name = "keap",
-    .fops = &keap_fops,
+static const struct proc_ops keap_fops = {
+    .proc_ioctl = keap_ioctl,
 };
 
 static int keap_init(void) {
   pr_info("keap: initialize\n");
-  return misc_register(&keap_device);
+  proc_create("keap", 0, NULL, &keap_fops);
+  return 0;
 }
 
 static void keap_exit(void) {
   pr_info("keap: exit\n");
-  misc_deregister(&keap_device);
+  remove_proc_entry("keap", NULL);
 }
 
 module_init(keap_init);

@@ -16,12 +16,6 @@ struct keap_transfer {
   size_t size;
 };
 
-struct chrdev_info {
-	unsigned int major;
-	struct cdev cdev;
-	struct class *class;
-};
-
 #define KEAP_IOCTL_MALLOC _IOW('K', 0, struct keap_malloc_param *)
 #define KEAP_IOCTL_READ   _IOW('K', 1, struct keap_transfer *)
 #define KEAP_IOCTL_WRITE  _IOW('K', 2, struct keap_transfer *)
