@@ -10,6 +10,38 @@ int stage = 0;
 volatile int is_busy = 1;
 
 #ifdef x86
+
+uint64_t __attribute__((always_inline)) inline rdtsc() {
+  uint64_t a, d;
+  asm volatile("mfence");
+#if TIMER == TIMER_RDTSCP
+  asm volatile("rdtscp" : "=a"(a), "=d"(d)::"rcx");
+#elif TIMER == TIMER_RDTSC
+  asm volatile("rdtsc" : "=a"(a), "=d"(d));
+#elif TIMER == TIMER_RDPRU
+  asm volatile(RDPRU : "=a"(a), "=d"(d) : "c"(RDPRU_ECX_APERF));
+#endif
+  a = (d << 32) | a;
+  asm volatile("mfence");
+  return a;
+}
+
+void __attribute__((always_inline)) inline prefetch(void *p) {
+  asm volatile("prefetchnta [%0]\n"
+               "prefetcht0 [%0]\n"
+               "prefetcht2 [%0]\n"
+               "prefetcht2 [%0]\n"
+               :
+               : "r"(p));
+}
+
+size_t flushandreload(void *addr) {
+  size_t time = rdtsc();
+  prefetch(addr);
+  size_t delta = rdtsc() - time;
+  return delta;
+}
+
 void burn_cycles(unsigned long long cycles) {
   unsigned long long start, ts;
   start = rdtsc();

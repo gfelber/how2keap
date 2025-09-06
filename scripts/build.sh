@@ -5,15 +5,12 @@ cd $SCRIPTPATH
 
 make clean
 
+set -e
+
 if [ $DEBUG -eq 1 ]; then
   make CFLAGS=-DDEBUG
 else
   make
 fi
 
-
-RESULT=$?
-if [ $RESULT -ne 0 ]; then
-  echo compile failed
-  exit $?
-fi
+set +e

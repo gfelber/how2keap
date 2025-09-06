@@ -43,10 +43,11 @@ The author(s) disclaim all liability for damages or legal consequences resulting
 ### Gadgets
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | - | - | - | - |
-| [cross\_cache.c](/linux6.6.22/cross_cache.c) | showcasing a cross cacheq attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
-| [slubstick.c](/linux6.6.22/slubstick.c) | [SLUBStick](https://github.com/IAIK/SLUBStick) more reliable way to trigger cross-cache  | latest        |  |
-| [per\_cpu\_slabs.c](/linux6.6.22/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  |
-| [mmaped\_files.c](/linux6.6.22/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` or `copy_to_user`  | latest |
+| [cross\_cache.c](/linux6.10.10/cross_cache.c) | showcasing a cross cacheq attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
+| [entrybleed.c](/linux6.10.10/entrybleed.c) | EntryBleed Exploit prefetch timing to leak KASLR | latest  | |
+| [slubstick.c](/linux6.10.10/slubstick.c) | [SLUBStick](https://github.com/IAIK/SLUBStick) more reliable way to trigger cross-cache  | latest        |  |
+| [per\_cpu\_slabs.c](/linux6.10.10/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  |
+| [mmaped\_files.c](/linux6.10.10/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` or `copy_to_user`  | latest |
 
 
 ## run examples
@@ -82,6 +83,8 @@ compile and modify kernel using buildroot
 2. apply buildroot keap.patch using patch:
 ```bash
 patch -p1 -i buildroot/keap.patch -d ./PATH/TO/BUIDLROOT
+make qemu_x86_64_defconfig 
+patch ./PATH/TO/BUIDLROOT/.config buildroot/config.patch
 ```
 3. make changes using `make menuconfig` (e.g. changing kernel version)
 4. compile keap and kernel using `make` (might take a while)

@@ -44,19 +44,20 @@ typedef int64_t i64;
   })
 
 #ifdef x86
-/* MACRO to enforce inline */
-#define rdtsc()                                                                \
-  ({                                                                           \
-    uint32_t lo, hi;                                                           \
-    __asm__ __volatile__("xor eax, eax\n"                                      \
-                         "lfence\n"                                            \
-                         "rdtsc\n"                                             \
-                         : "=a"(lo), "=d"(hi)                                  \
-                         :                                                     \
-                         : "ebx", "ecx");                                      \
-    (uint64_t) hi << 32 | lo;                                                  \
-  })
 
+#define TIMER_RDTSC 1     // standard timestamp counter
+#define TIMER_RDTSCP 2    // serializing timestamp counter
+#define TIMER_RDPRU 3     // high-res timer on recent AMD
+
+#define TIMER TIMER_RDTSC
+
+#define RDPRU ".byte 0x0f, 0x01, 0xfd"
+#define RDPRU_ECX_MPERF 0
+#define RDPRU_ECX_APERF 1
+
+uint64_t rdtsc();
+void prefetch(void *p);
+size_t flushandreload(void *addr);
 void burn_cycles(unsigned long long cycles);
 #endif
 

