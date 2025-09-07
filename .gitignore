@@ -7,4 +7,6 @@ bzImage
 .gdb_history
 out
 shellcode
-
+readflag
+share
+keap_*.tar.xz

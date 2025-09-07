@@ -2,7 +2,7 @@
 
 int keap_fd = -1;
 
-void init() { keap_fd = SYSCHK(open("/dev/keap", O_RDWR)); }
+void init() { keap_fd = SYSCHK(open("/proc/keap", O_RDWR)); }
 
 void *keap_malloc(size_t size, int flags) {
   struct keap_malloc_param param = {
