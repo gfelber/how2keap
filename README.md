@@ -87,4 +87,6 @@ patch buildroot/.config ./PATH/TO/BUIDLROOT/config.patch
 5. the final files (rootfs.cpio.gz and bzImage) are located inside the buildroot dir inside `./output/images`
 
 ## helpful links
-+ bootlin: https://elixir.bootlin.com/linux/v6.10.10/source
++ bootlin: https://elixir.bootlin.com/linux/v6.12.27/source
++ linux-stable: https://github.com/gregkh/linux/tree/v6.12.27
++ bata24/gef: https://github.com/bata24/gef?tab=readme-ov-file
