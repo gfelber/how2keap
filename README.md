@@ -34,6 +34,7 @@ The author(s) disclaim all liability for damages or legal consequences resulting
 | - | - | - | - | - |
 | [mad\_cow.c](/linux6.12.27/mad\_cow.c) | corrupt file struct and abuse COW to inject code into another process | latest        | ~[^1] | [Baby VMA](https://github.com/ECSC2024/ECSC2024-CTF-Jeopardy/tree/main/pwn05) |
 | [dirty\_cred.c](/linux6.12.27/dirty_cred.c) | [DirtyCred](https://github.com/Markakd/DirtyCred) abuses the heap memory reuse mechanism to get privileged, using MadCOW to achive privilege escalation  | latest          | ~[^2] | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15) |
+| [jit\_spray.c](/linux6.12.27/jit_spray.c) | cBPF JIT Spray sprays attacker controlled ring0 shellcode | latest        | X|  |
 | [dirty\_pagetable.c](/linux6.12.27/dirty_pagetable.c) | [Dirty Pagetable](https://yanglingxi1993.github.io/dirty_pagetable/dirty_pagetable.html) abuse pagetables to get unprotected AAR/AAW in kernel space (kernel RCE) | latest        | X| [keasy](https://ptr-yudai.hatenablog.com/entry/2023/12/08/093606#Dirty-Pagetable) |
 
 [^1]: Jail escape possible if a binary or library is accessible as readonly in jail and used by outside process
@@ -42,7 +43,7 @@ The author(s) disclaim all liability for damages or legal consequences resulting
 ### Gadgets
 | File                          | Technique                                                    | Linux-Version | Applicable CTF Challenges                             |
 | - | - | - | - |
-| [cross\_cache.c](/linux6.12.27/cross_cache.c) | showcasing a cross cacheq attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
+| [cross\_cache.c](/linux6.12.27/cross_cache.c) | showcasing a cross-cache attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
 | [per\_cpu\_slabs.c](/linux6.12.27/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  |
 | [mmaped\_files.c](/linux6.12.27/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` or `copy_to_user`  | latest |
 | [entrybleed.c](/linux6.12.27/entrybleed.c) | EntryBleed exploit prefetch timing to leak KASLR | latest  | |
@@ -89,4 +90,4 @@ patch buildroot/.config ./PATH/TO/BUIDLROOT/config.patch
 ## helpful links
 + bootlin: https://elixir.bootlin.com/linux/v6.12.27/source
 + linux-stable: https://github.com/gregkh/linux/tree/v6.12.27
-+ bata24/gef: https://github.com/bata24/gef?tab=readme-ov-file
++ bata24/gef: https://github.com/bata24/gef
