@@ -1,0 +1,74 @@
+245c173
+< # BR2_TOOLCHAIN_BUILDROOT_CXX is not set
+---
+> BR2_TOOLCHAIN_BUILDROOT_CXX=y
+263a192
+> BR2_INSTALL_LIBSTDCPP=y
+468,472c402,406
+< BR2_TARGET_GENERIC_HOSTNAME="buildroot"
+< BR2_TARGET_GENERIC_ISSUE="Welcome to Buildroot"
+< BR2_TARGET_GENERIC_PASSWD_SHA256=y
+< # BR2_TARGET_GENERIC_PASSWD_SHA512 is not set
+< BR2_TARGET_GENERIC_PASSWD_METHOD="sha-256"
+---
+> BR2_TARGET_GENERIC_HOSTNAME="keap"
+> BR2_TARGET_GENERIC_ISSUE="####################################################n#                                                  #n#    Tired of bloated heap implementations?        #n#          __                                      #n#         |  | __ ____ _____  ______               #n#         |  |/ // __ \\\\__  \\ \\____ \\              #n#         |    <\\  ___/ / __ \\|  |_> >             #n#    use  |__|_ \\\\___  >____  /   __/              #n#              \\/    \\/     \\/|__|                 #n#                                                  #n####################################################"
+> # BR2_TARGET_GENERIC_PASSWD_SHA256 is not set
+> BR2_TARGET_GENERIC_PASSWD_SHA512=y
+> BR2_TARGET_GENERIC_PASSWD_METHOD="sha-512"
+485,486c419
+< BR2_TARGET_ENABLE_ROOT_LOGIN=y
+< BR2_TARGET_GENERIC_ROOT_PASSWD=""
+---
+> # BR2_TARGET_ENABLE_ROOT_LOGIN is not set
+541c463
+< BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES=""
+---
+> BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="keap_frag_config"
+943c748
+< # BR2_PACKAGE_LIBTOOL is not set
+---
+> BR2_PACKAGE_LIBTOOL=y
+2571c1863,1864
+< # BR2_PACKAGE_LIBNL is not set
+---
+> BR2_PACKAGE_LIBNL=y
+> BR2_PACKAGE_LIBNL_TOOLS=n
+2881c2018,2019
+< # BR2_PACKAGE_LIBCAP is not set
+---
+> BR2_PACKAGE_LIBCAP=y
+> BR2_PACKAGE_LIBCAP_TOOLS=n
+2960c2065
+< # BR2_PACKAGE_LIBSECCOMP is not set
+---
+> BR2_PACKAGE_LIBSECCOMP=y
+3918,3920c2788,2792
+< # BR2_PACKAGE_KEAP is not set
+< # BR2_PACKAGE_NOSU is not set
+< # BR2_PACKAGE_NSJAIL is not set
+---
+> BR2_PACKAGE_KEAP=y
+> BR2_PACKAGE_NOSU=y
+> BR2_PACKAGE_NSJAIL=y
+> BR2_PACKAGE_PROTOBUF=y
+> BR2_PACKAGE_LIBABSEIL_CPP=y
+3928c2798,2809
+< # BR2_TARGET_ROOTFS_CPIO is not set
+---
+> BR2_TARGET_ROOTFS_CPIO=y
+> BR2_TARGET_ROOTFS_CPIO_FULL=y
+> # BR2_TARGET_ROOTFS_CPIO_DRACUT is not set
+> # BR2_TARGET_ROOTFS_CPIO_NONE is not set
+> BR2_TARGET_ROOTFS_CPIO_GZIP=y
+> # BR2_TARGET_ROOTFS_CPIO_BZIP2 is not set
+> # BR2_TARGET_ROOTFS_CPIO_LZ4 is not set
+> # BR2_TARGET_ROOTFS_CPIO_LZMA is not set
+> # BR2_TARGET_ROOTFS_CPIO_LZO is not set
+> # BR2_TARGET_ROOTFS_CPIO_XZ is not set
+> # BR2_TARGET_ROOTFS_CPIO_ZSTD is not set
+> # BR2_TARGET_ROOTFS_CPIO_UIMAGE is not set
+3954c2835
+< # BR2_TARGET_ROOTFS_INITRAMFS is not set
+---
+> BR2_TARGET_ROOTFS_INITRAMFS=y

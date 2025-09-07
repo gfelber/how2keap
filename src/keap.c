@@ -37,7 +37,7 @@ static long keap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
   case KEAP_IOCTL_FREE:
     printk("keap: free %p\n", (void *)arg);
-    kfree((void *)arg);
+    kvfree((void *)arg);
     return 0;
   }
 
@@ -50,7 +50,7 @@ static const struct proc_ops keap_fops = {
 
 static int keap_init(void) {
   pr_info("keap: initialize\n");
-  proc_create("keap", 0, NULL, &keap_fops);
+  proc_create("keap", 0666, NULL, &keap_fops);
   return 0;
 }
 

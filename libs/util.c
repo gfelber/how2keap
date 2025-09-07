@@ -27,12 +27,12 @@ uint64_t __attribute__((always_inline)) inline rdtsc() {
 }
 
 void __attribute__((always_inline)) inline prefetch(void *p) {
-  asm volatile("prefetchnta [%0]\n"
-               "prefetcht0 [%0]\n"
-               "prefetcht2 [%0]\n"
-               "prefetcht2 [%0]\n"
-               :
-               : "r"(p));
+  asm volatile( // "prefetchnta [%0]\n"
+                // "prefetcht0 [%0]\n"
+      // "prefetcht1 [%0]\n"
+      "prefetcht2 [%0]\n"
+      :
+      : "r"(p));
 }
 
 size_t flushandreload(void *addr) {

