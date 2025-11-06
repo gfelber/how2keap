@@ -8,9 +8,18 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/resource.h>
+#include <sys/wait.h>
 
 #ifndef UTIL_H
 #define UTIL_H
+
+#ifndef SYS_pidfd_getfd
+#define SYS_pidfd_getfd 438
+#endif
+#ifndef SYS_pidfd_open
+#define SYS_pidfd_open 434
+#endif
+
 
 #if defined(__x86_64__) || defined(__i386__)
 #define x86
@@ -30,7 +39,7 @@ typedef size_t sz;
 #define CHK(x)                                                                 \
   do {                                                                         \
     if (!(x)) {                                                                \
-      lerror("%s\n", "CHK(" #x ")");                                           \
+      lerror("%s:\n  %s", "CHK(" #x ")", strerror(errno));                  \
     }                                                                          \
   } while (0)
 
@@ -44,6 +53,14 @@ typedef size_t sz;
     __res;                                                                     \
   })
 
+#define ARRAY_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
+#define SWAP(a, b)                                                            \
+  do {                                                                         \
+    typeof(a) __tmp = (a);                                                    \
+    (a) = (b);                                                                \
+    (b) = __tmp;                                                              \
+  } while (0)
+
 #ifdef x86
 
 #define TIMER_RDTSC 1     // standard timestamp counter
@@ -56,14 +73,31 @@ typedef size_t sz;
 #define RDPRU_ECX_MPERF 0
 #define RDPRU_ECX_APERF 1
 
-uint64_t rdtsc();
+uint64_t get_cycles();
 void prefetch(void *p);
 size_t flushandreload(void *addr);
-void burn_cycles(unsigned long long cycles);
+
+
+#define read_barrier() __asm__ __volatile__("lfence")
+#define write_barrier() __asm__ __volatile__("sfence")
+
+
+#elif defined(__aarch64__)
+uint64_t get_cycles();
+void prefetch(void *p);
+size_t flushandreload(void *addr);
+#define read_barrier() __asm__ __volatile__("dmb ishld")
+#define write_barrier() __asm__ __volatile__("dmb ishst")
+
 #endif
 
+__attribute__((noinline)) void kbreak(void);
+
+void burn_cycles(unsigned long long cycles);
 void pin_cpu(pid_t pid, int cpu);
 int rlimit_increase(int rlimit);
+
+void flush_tlb();
 
 void set_priority(pid_t pid, int prio);
 void set_scheduler(pid_t pid, int policy, int prio);
@@ -104,6 +138,7 @@ void print_hex(void *data, size_t size);
 #define lerror(format, ...)                                                    \
   do {                                                                         \
     fprintf(stderr, LERROR format "\n", ##__VA_ARGS__);                        \
+    getchar();                                                                 \
     exit(EXIT_FAILURE);                                                        \
   } while (0)
 

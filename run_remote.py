@@ -66,7 +66,7 @@ def checkpoint():
 context.newline = b"\r\n"
 
 linfo("compile pwn binary")
-if os.system("make"):
+if os.system("make strip"):
   lerror("failed to compile")
 os.system(f"xz --keep {BINARY}")
 

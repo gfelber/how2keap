@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/eventfd.h>
+#include <sys/mman.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -11,7 +12,7 @@ volatile int is_busy = 1;
 
 #ifdef x86
 
-uint64_t __attribute__((always_inline)) inline rdtsc() {
+uint64_t __attribute__((always_inline)) inline get_cycles() {
   uint64_t a, d;
   asm volatile("mfence");
 #if TIMER == TIMER_RDTSCP
@@ -36,19 +37,53 @@ void __attribute__((always_inline)) inline prefetch(void *p) {
 }
 
 size_t flushandreload(void *addr) {
-  size_t time = rdtsc();
+  size_t time = get_cycles();
   prefetch(addr);
-  size_t delta = rdtsc() - time;
+  size_t delta = get_cycles() - time;
   return delta;
 }
 
 void burn_cycles(unsigned long long cycles) {
   unsigned long long start, ts;
-  start = rdtsc();
+  start = get_cycles();
   do {
-    ts = rdtsc();
+    ts = get_cycles();
   } while ((ts - start) < cycles);
 }
+
+__attribute__((noinline)) void kbreak(void) {
+  asm("mov rax, -1\n"
+      "syscall");
+}
+
+#elif defined(__aarch64__)
+
+uint64_t __attribute__((always_inline)) inline get_cycles() {
+  uint64_t virtual_timer_value;
+  asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
+  return virtual_timer_value;
+}
+
+void prefetch(void *p) { asm volatile("prfm pldl1keep, [%0]" ::"r"(p)); }
+
+void burn_cycles(unsigned long long cycles) {
+  unsigned long long start, ts;
+  start = get_cycles();
+  do {
+    ts = get_cycles();
+  } while ((ts - start) < cycles);
+}
+
+__attribute__((noinline)) void kbreak(void) {
+  asm("mov x0, -1\n"
+      "svc #0");
+}
+
+#else
+
+__attribute__((noinline)) void kbreak(void) {}
+
+#endif
 
 void *busy_func(void *cpu_ptr) {
   pin_cpu(0, (intptr_t)cpu_ptr);
@@ -56,18 +91,6 @@ void *busy_func(void *cpu_ptr) {
     burn_cycles(0x1000);
   return NULL;
 }
-
-#else
-
-void *busy_func(void *cpu_ptr) {
-  pin_cpu(0, (intptr_t)cpu_ptr);
-  while (is_busy)
-    ;
-
-  return NULL;
-}
-
-#endif
 
 void set_priority(pid_t pid, int prio) {
   errno = 0;
@@ -122,6 +145,17 @@ int rlimit_increase(int rlimit) {
   return res;
 }
 
+void flush_tlb() {
+  static void *page = NULL;
+  if (!page) {
+    page = mmap(NULL, 0x1000, PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (page == MAP_FAILED)
+      lerror("mmap failed in flush_tlb");
+  }
+  SYSCHK(madvise(page, 0x1000, MADV_DONTNEED));
+}
+
 int ipow(int base, unsigned int power) {
   int out = 1;
   for (int i = 0; i < power; ++i) {
@@ -133,6 +167,7 @@ int ipow(int base, unsigned int power) {
 char *cyclic_gen(char *buf, int length) {
   char charset[] = "abcdefghijklmnopqrstuvwxyz";
   int size = length;
+  buf[size] = 0;
 
   for (int i = 0; length > 0; ++i) {
     buf[size - length] = charset[i % strlen(charset)];
@@ -149,7 +184,6 @@ char *cyclic_gen(char *buf, int length) {
         charset[(i / ipow(strlen(charset), 3)) % strlen(charset)];
     --length;
   }
-  buf[size] = 0;
 
   return buf;
 }

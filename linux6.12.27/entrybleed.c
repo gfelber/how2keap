@@ -19,7 +19,7 @@
 #define OFFSET -0x200000
 #define NUM_TRIALS 9
 // largest contiguous mapped area at the beginning of _stext (check debug)
-#define WINDOW_SIZE 11
+#define WINDOW_SIZE 12
 
 #ifdef MAX
 #define OUTLIER_CMP >

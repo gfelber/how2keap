@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
   lstage("START");
 
-  linfo("fill old victim slabs");
+  linfo("fill victim slabs");
   // fill at least on slab
   for (int i = 0; i < VICTIM_CHUNKS(cur); ++i) {
     victim_chunks[i] = keap_malloc(cur->size, GFP_KERNEL_ACCOUNT);

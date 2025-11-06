@@ -46,7 +46,7 @@ do
     esac
 done
 
-if [ ! -d ./share/bzImage.unpack ]; then
+if [ ! -f ./share/bzImage.unpack ]; then
   ./scripts/extract-image.sh ./share/bzImage > ./share/bzImage.unpack
 fi
 
@@ -73,6 +73,12 @@ if [ $PWN -eq 1 ]; then
 fi
 
 if [ $GDB -eq 1 ]; then
+  addr=$(readelf -s out/pwn | awk '/kbreak/ {print $2; exit}')
+  if [ -z "$addr" ]; then
+    sed -i "/# kbreak/{n;s/.*/# hb * kbreak/}" ./scripts/gdbinit
+  else
+    sed -i "/# kbreak/{n;s/.*/hb * 0x$addr/}" ./scripts/gdbinit
+  fi
   tmux split -v "gdb ./share/bzImage.unpack -x ./scripts/gdbinit"
   QARGS="-s"
 fi
@@ -111,7 +117,7 @@ echo "$FLAG" > $FLAG_FILE
 
 qemu-system-x86_64 \
   $QARGS \
-  -kernel ./share/bzImage  \
+  -kernel ./share/bzImage \
   $CPU \
   -m 512M \
   -smp 3 \
@@ -119,7 +125,6 @@ qemu-system-x86_64 \
   -drive file=./out/pwn,format=raw \
   -initrd ./rootfs.cpio.gz  \
   -append "$KARGS" \
-  -monitor /dev/null \
   -nographic
 
 rm $FLAG_FILE
