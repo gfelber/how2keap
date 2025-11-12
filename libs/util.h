@@ -111,8 +111,9 @@ void event_signal(int evfd);
 void event_wait(int evfd);
 
 int ipow(int base, unsigned int power);
-char *cyclic_gen(char *buf, int length);
+char *cyclic_gen(char *buf, int length, size_t off);
 char *cyclic(int length);
+ssize_t cyclic_find(char *subseq);
 char *to_hex(char *dst, char *src, size_t size);
 
 /* logging */
