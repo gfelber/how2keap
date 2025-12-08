@@ -20,7 +20,6 @@
 #define SYS_pidfd_open 434
 #endif
 
-
 #if defined(__x86_64__) || defined(__i386__)
 #define x86
 #endif
@@ -39,7 +38,7 @@ typedef size_t sz;
 #define CHK(x)                                                                 \
   do {                                                                         \
     if (!(x)) {                                                                \
-      lerror("%s:\n  %s", "CHK(" #x ")", strerror(errno));                  \
+      lerror("%s:\n  %s", "CHK(" #x ")", strerror(errno));                     \
     }                                                                          \
   } while (0)
 
@@ -54,18 +53,18 @@ typedef size_t sz;
   })
 
 #define ARRAY_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
-#define SWAP(a, b)                                                            \
+#define SWAP(a, b)                                                             \
   do {                                                                         \
-    typeof(a) __tmp = (a);                                                    \
-    (a) = (b);                                                                \
-    (b) = __tmp;                                                              \
+    typeof(a) __tmp = (a);                                                     \
+    (a) = (b);                                                                 \
+    (b) = __tmp;                                                               \
   } while (0)
 
 #ifdef x86
 
-#define TIMER_RDTSC 1     // standard timestamp counter
-#define TIMER_RDTSCP 2    // serializing timestamp counter
-#define TIMER_RDPRU 3     // high-res timer on recent AMD
+#define TIMER_RDTSC 1  // standard timestamp counter
+#define TIMER_RDTSCP 2 // serializing timestamp counter
+#define TIMER_RDPRU 3  // high-res timer on recent AMD
 
 #define TIMER TIMER_RDTSC
 
@@ -77,10 +76,8 @@ uint64_t get_cycles();
 void prefetch(void *p);
 size_t flushandreload(void *addr);
 
-
 #define read_barrier() __asm__ __volatile__("lfence")
 #define write_barrier() __asm__ __volatile__("sfence")
-
 
 #elif defined(__aarch64__)
 uint64_t get_cycles();
@@ -103,7 +100,7 @@ void set_priority(pid_t pid, int prio);
 void set_scheduler(pid_t pid, int policy, int prio);
 int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param);
 
-extern volatile int is_busy;
+extern _Atomic volatile int is_busy;
 void *busy_func(void *cpu_ptr);
 
 int event_create(void);
@@ -138,6 +135,7 @@ void print_hex(void *data, size_t size);
 
 #define lerror(format, ...)                                                    \
   do {                                                                         \
+    is_busy = 0;                                                               \
     fprintf(stderr, LERROR format "\n", ##__VA_ARGS__);                        \
     getchar();                                                                 \
     exit(EXIT_FAILURE);                                                        \

@@ -1,7 +1,7 @@
 #include "libs/pwn.h"
 #include <pthread.h>
-#include <stdlib.h>
 #include <sys/mman.h>
+#include <sys/random.h>
 #include <unistd.h>
 
 /*******************************
@@ -14,7 +14,6 @@
 
 enum RACE { RACE_ONGOING = 0, RACE_WON, RACE_LOST };
 
-extern volatile int is_busy;
 int start_race = -1;
 volatile int race_done = 0;
 
@@ -34,6 +33,16 @@ void *fast(void *buf) {
 
   linfo("fast thread done");
 
+  return NULL;
+}
+
+void *lag(void *lag) {
+  pin_cpu(0, 0);
+  int perms = PROT_READ | PROT_WRITE;
+  while (is_busy) {
+    perms ^= PROT_WRITE;
+    mprotect((void *)lag, BUF_SIZE, perms);
+  }
   return NULL;
 }
 
@@ -66,7 +75,7 @@ int main(int argc, char *argv[]) {
   char buf[BUF_SIZE] = {0};
   char rand[8] = {0};
   char filename[5 + (sizeof(rand) * 2) + 1] = "/tmp/";
-  pthread_t slow_t, fast_t, busy_t;
+  pthread_t slow_t, fast_t, busy_t[2], lag_t[0x2];
 
   lstage("INIT");
 
@@ -76,36 +85,35 @@ int main(int argc, char *argv[]) {
   init();
 
   fd = SYSCHK(open("/dev/urandom", O_RDONLY));
-  CHK(read(fd, (void *)rand, sizeof(rand)) == sizeof(rand));
-  CHK(read(fd, (void *)buf, sizeof(buf)) == sizeof(buf));
-  SYSCHK(close(fd));
+  getrandom(rand, sizeof(rand), 0);
+  cyclic_gen(buf, sizeof(buf), 0);
   to_hex(filename + 5, rand, sizeof(rand));
   filename[sizeof(filename) - 1] = 0;
 
   linfo("slow file: %s", filename);
 
-  lstage("create slower structs");
-
   // create target file
   fd = SYSCHK(open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
-
-  CHK(write(fd, buf, BUF_SIZE) == BUF_SIZE);
-  SYSCHK(close(fd));
-
-  fd = SYSCHK(open(filename, O_RDWR));
+  CHK(write(fd, buf, sizeof(buf)) == sizeof(buf));
   file_map = SYSCHK(mmap(NULL, BUF_SIZE, PROT_READ, MAP_SHARED, fd, 0));
 
   lstage("start race");
 
   // create a busy thread to slow down execution
-  pthread_create(&busy_t, NULL, busy_func, (void *)SLOW_CPU);
+  for (int i = 0; i < ARRAY_LEN(busy_t); i++)
+    pthread_create(&busy_t[i], NULL, busy_func, (void *)SLOW_CPU);
+  for (int i = 0; i < ARRAY_LEN(lag_t); i++)
+    pthread_create(&lag_t[i], NULL, lag, (void *)file_map);
   pthread_create(&slow_t, NULL, slow, file_map);
   pthread_create(&fast_t, NULL, fast, (void *)buf);
 
-  pthread_join(slow_t, NULL);
   is_busy = 0;
-  pthread_join(busy_t, NULL);
+  pthread_join(slow_t, NULL);
   pthread_join(fast_t, NULL);
+  for (int i = 0; i < ARRAY_LEN(busy_t); i++)
+    pthread_join(busy_t[i], NULL);
+  for (int i = 0; i < ARRAY_LEN(lag_t); i++)
+    pthread_join(lag_t[i], NULL);
 
   munmap(file_map, BUF_SIZE);
   close(fd);

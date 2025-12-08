@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 int stage = 0;
-volatile int is_busy = 1;
+_Atomic volatile int is_busy = 1;
 
 #ifdef x86
 
@@ -164,19 +164,9 @@ int ipow(int base, unsigned int power) {
   return out;
 }
 
-static void fkm_helper(
-  int t,
-  int p,
-  char *buf,
-  const char *charset,
-  int *a,
-  int k,
-  int n,
-  size_t offset,
-  size_t length,
-  size_t *count,
-  size_t *buf_idx
-) {
+static void fkm_helper(int t, int p, char *buf, const char *charset, int *a,
+                       int k, int n, size_t offset, size_t length,
+                       size_t *count, size_t *buf_idx) {
   if (*buf_idx >= length) {
     return;
   }
@@ -197,30 +187,31 @@ static void fkm_helper(
   } else {
     a[t] = a[t - p];
     fkm_helper(t + 1, p, buf, charset, a, k, n, offset, length, count, buf_idx);
-    if (*buf_idx >= length) return;
+    if (*buf_idx >= length)
+      return;
 
     for (int j = a[t - p] + 1; j < k; j++) {
       a[t] = j;
-      fkm_helper(t + 1, t, buf, charset, a, k, n, offset, length, count, buf_idx);
-      if (*buf_idx >= length) return;
+      fkm_helper(t + 1, t, buf, charset, a, k, n, offset, length, count,
+                 buf_idx);
+      if (*buf_idx >= length)
+        return;
     }
   }
 }
 
-static void fkm_find_helper(
-  int t, int p,
-  const char *subseq, const char *charset, int *a,
-  int k, int n,
-  char *window, size_t *window_fill,
-  size_t *pos, ssize_t *result
-) {
-  if (*result != -1) return;
+static void fkm_find_helper(int t, int p, const char *subseq,
+                            const char *charset, int *a, int k, int n,
+                            char *window, size_t *window_fill, size_t *pos,
+                            ssize_t *result) {
+  if (*result != -1)
+    return;
 
   if (t > n) {
     if (n % p == 0) {
       for (int i = 1; i <= p; i++) {
         char c = charset[a[i]];
-        
+
         if (*window_fill < n) {
           window[*window_fill] = c;
           (*window_fill)++;
@@ -229,7 +220,7 @@ static void fkm_find_helper(
           window[n - 1] = c;
           (*pos)++;
         }
-        
+
         if (*window_fill == n && memcmp(window, subseq, n) == 0) {
           *result = *pos;
           return;
@@ -238,13 +229,17 @@ static void fkm_find_helper(
     }
   } else {
     a[t] = a[t - p];
-    fkm_find_helper(t + 1, p, subseq, charset, a, k, n, window, window_fill, pos, result);
-    if (*result != -1) return;
+    fkm_find_helper(t + 1, p, subseq, charset, a, k, n, window, window_fill,
+                    pos, result);
+    if (*result != -1)
+      return;
 
     for (int j = a[t - p] + 1; j < k; j++) {
       a[t] = j;
-      fkm_find_helper(t + 1, t, subseq, charset, a, k, n, window, window_fill, pos, result);
-      if (*result != -1) return;
+      fkm_find_helper(t + 1, t, subseq, charset, a, k, n, window, window_fill,
+                      pos, result);
+      if (*result != -1)
+        return;
     }
   }
 }
@@ -254,7 +249,7 @@ char *cyclic_gen(char *buf, int length, size_t off) {
   int n_gram = 4;
   int k = strlen(charset);
 
-  int *a = (int*)calloc(k * n_gram + 1, sizeof(int));
+  int *a = (int *)calloc(k * n_gram + 1, sizeof(int));
   if (a == NULL) {
     return buf;
   }
@@ -262,7 +257,8 @@ char *cyclic_gen(char *buf, int length, size_t off) {
   size_t count = 0;
   size_t buf_idx = 0;
 
-  fkm_helper(1, 1, buf, charset, a, k, n_gram, off, (size_t)length, &count, &buf_idx);
+  fkm_helper(1, 1, buf, charset, a, k, n_gram, off, (size_t)length, &count,
+             &buf_idx);
 
   free(a);
   return buf;
@@ -273,11 +269,13 @@ ssize_t cyclic_find(char *subseq) {
   int n_gram = 4;
   int k = strlen(charset);
 
-  int *a = (int*)calloc(k * n_gram + 1, sizeof(int));
-  char *window = (char*)malloc(n_gram);
+  int *a = (int *)calloc(k * n_gram + 1, sizeof(int));
+  char *window = (char *)malloc(n_gram);
   if (a == NULL || window == NULL) {
-    if (a) free(a);
-    if (window) free(window);
+    if (a)
+      free(a);
+    if (window)
+      free(window);
     return -1;
   }
 
@@ -285,7 +283,8 @@ ssize_t cyclic_find(char *subseq) {
   size_t pos = 0;
   ssize_t result = -1;
 
-  fkm_find_helper(1, 1, subseq, charset, a, k, n_gram, window, &window_fill, &pos, &result);
+  fkm_find_helper(1, 1, subseq, charset, a, k, n_gram, window, &window_fill,
+                  &pos, &result);
 
   free(a);
   free(window);
@@ -299,7 +298,7 @@ char *cyclic(int length) {
 
 char *to_hex(char *dst, char *src, size_t size) {
   for (size_t i = 0; i < size; ++i)
-    sprintf(dst + i * 2, "%02x", src[i]);
+    sprintf(dst + i * 2, "%02hhx", src[i]);
   return dst;
 }
 
