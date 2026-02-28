@@ -1,11 +1,4 @@
 #include "util.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/eventfd.h>
-#include <sys/mman.h>
-#include <sys/syscall.h>
-#include <unistd.h>
 
 int stage = 0;
 _Atomic volatile int is_busy = 1;
@@ -300,6 +293,20 @@ char *to_hex(char *dst, char *src, size_t size) {
   for (size_t i = 0; i < size; ++i)
     sprintf(dst + i * 2, "%02hhx", src[i]);
   return dst;
+}
+
+char *randoms_gen(char *buf, size_t length) {
+  size_t random_size = length / 2 + 1;
+  char *rand[random_size];
+  getrandom(rand, random_size, 0);
+  to_hex(buf, (char *)rand, random_size);
+  buf[length] = 0;
+  return buf;
+}
+
+char *randoms(size_t length) {
+  char *rand_str = malloc(length + 1);
+  return randoms_gen(rand_str, length);
 }
 
 void print_hex(void *_data, size_t size) {

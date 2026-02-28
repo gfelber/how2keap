@@ -45,7 +45,9 @@ The author(s) disclaim all liability for damages or legal consequences resulting
 | - | - | - | - |
 | [cross\_cache.c](/linux6.12.27/cross_cache.c) | showcasing a cross-cache attack that allows using dangeling ptrs to target heap of other slabs | latest  | [Wall Rose](https://ctf2023.hitcon.org/dashboard/#15)
 | [per\_cpu\_slabs.c](/linux6.12.27/per_cpu_slabs.c) | showcasing how slabs are managed and reallocated on a per cpu basis| latest  |
+| [pipe\_buffer.c](/linux6.12.27/pipe_buffer.c) |   turn pipe buffers into arb page read/write  | latest |[d3kheap2](https://github.com/arttnba3/D3CTF2025_d3kheap2)|
 | [pbuf\_realloc.c](/linux6.12.27/pbuf_realloc.c) |   use io\_uring provided buffers to realloc into `GFP_KERNEL` or `GFP_KERNEL_ACCOUNT` holes  | latest |[ARIES - Sheratan](https://www.gfelber.dev/writeups/ctrl_space_sheratan.md)|
+| [pselect\_realloc.c](/linux6.12.27/pselect_realloc.c) |   use pselect to realloc into `GFP_KERNEL` holes  | latest |[tinyfs](https://ctftime.org/event/2862)|
 | [mmaped\_files.c](/linux6.12.27/mmaped_files.c) |   using mmaped files to create race windows with `copy_from_user` or `copy_to_user`  | latest |
 | [entrybleed.c](/linux6.12.27/entrybleed.c) | EntryBleed exploit prefetch timing to leak KASLR | latest  | |
 | [slubstick.c](/linux6.12.27/slubstick.c) | [SLUBStick](https://github.com/IAIK/SLUBStick) more reliable way to trigger cross-cache  | latest        |  |

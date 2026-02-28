@@ -6,9 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/eventfd.h>
 #include <sys/mman.h>
+#include <sys/random.h>
 #include <sys/resource.h>
+#include <sys/syscall.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #ifndef UTIL_H
 #define UTIL_H
@@ -112,6 +116,8 @@ char *cyclic_gen(char *buf, int length, size_t off);
 char *cyclic(int length);
 ssize_t cyclic_find(char *subseq);
 char *to_hex(char *dst, char *src, size_t size);
+char *randoms_gen(char* buf, size_t length);
+char *randoms(size_t length);
 
 /* logging */
 void print_hex(void *data, size_t size);
@@ -137,7 +143,6 @@ void print_hex(void *data, size_t size);
   do {                                                                         \
     is_busy = 0;                                                               \
     fprintf(stderr, LERROR format "\n", ##__VA_ARGS__);                        \
-    getchar();                                                                 \
     exit(EXIT_FAILURE);                                                        \
   } while (0)
 
