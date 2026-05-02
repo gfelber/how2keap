@@ -109,7 +109,8 @@ int main(int argc, char *argv[]) {
   if (crpt_pipe == NULL)
     lerror("failed to find crpt pipe");
 
-  u64 core_pattern_phys = physbase + (physbase == 0x2801000 ? 0x3000 : 0) - 0x94f000;
+  u64 core_pattern_phys =
+      physbase + (physbase == 0x2801000 ? 0x3000 : 0) - 0x94f000;
   u64 core_pattern_off = 0x380;
   lhex(core_pattern_phys);
 
