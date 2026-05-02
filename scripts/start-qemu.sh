@@ -79,7 +79,7 @@ if [ $GDB -eq 1 ]; then
   else
     sed -i "/# kbreak/{n;s/.*/hb * 0x$addr/}" ./scripts/gdbinit
   fi
-  tmux split -v "gdb ./share/bzImage.unpack --nh -x ./scripts/gdbinit"
+  tmux split -v "gdb ./share/bzImage.unpack -x ./scripts/gdbinit"
   QARGS="-s"
 fi
 
