@@ -3,7 +3,7 @@ NAME = pwn
 
 CC = gcc
 
-_CFLAGS := $(CFLAGS) -Os -DGNU_SOURCE  -masm=intel -ffunction-sections -fdata-sections
+_CFLAGS := $(CFLAGS) -Os -masm=intel -ffunction-sections -fdata-sections
 LDFLAGS := -static -Wl,--gc-sections
 LIBS := -pthread
 
